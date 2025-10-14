@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  notify:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      CONFIG_DIR: /app/configs
+    volumes:
+      - ./configs:/app/configs:ro

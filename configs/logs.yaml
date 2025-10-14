@@ -1,0 +1,16 @@
+display_name: Logs
+fields:
+  badge: "{{ level|default('')|upper }}"
+  title: "{{ message|default('') }}"
+  link: "{{ url|default('') }}"
+  description: |
+    Level: **{{ level|default('unknown')|upper }}**
+
+    {{ details|default('') }}
+highlight_rules:
+  - name: error
+    when: "level == 'error'"
+    class: highlight-error
+  - name: warning
+    when: "level == 'warning'"
+    class_: highlight-warning
