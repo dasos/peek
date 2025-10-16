@@ -1,0 +1,7 @@
+display_name: DIUN
+fields:
+  badge: "Update"
+  title: "{{ image }} has been updated"
+  link: "{{ hub_link }}"
+  description: |
+    Docker tag [**{{ image }}**]({{ hub_link }}) has been updated.
