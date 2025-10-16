@@ -197,7 +197,7 @@
     <header class="peek-header">
       <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5">
         <div>
-          <h1 class="text-xl font-semibold text-brand-600 dark:text-brand-200">Peek Observatory</h1>
+          <h1 class="text-xl font-semibold text-brand-600 dark:text-brand-200">Peek</h1>
           <p class="text-sm text-slate-600 dark:text-slate-400">Monitor every stream from one elegant dashboard.</p>
         </div>
         <div class="flex items-center gap-3">
@@ -205,7 +205,18 @@
             <span id="viewToggleLabel">Toggle layout</span>
           </button>
           <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
-            <span id="themeToggleLabel">Toggle theme</span>
+            <span class="flex items-center gap-2">
+              <span class="flex h-5 w-5 items-center justify-center">
+                <svg data-theme-icon="sun" class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"></circle>
+                  <path d="M12 3.25v1.5M12 19.25v1.5M4.75 12h-1.5M20.75 12h-1.5M6.17 6.17l-1.06-1.06M18.89 18.89l-1.06-1.06M6.17 17.83l-1.06 1.06M18.89 5.11l-1.06 1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                </svg>
+                <svg data-theme-icon="moon" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span id="themeToggleLabel">Toggle theme</span>
+            </span>
           </button>
         </div>
       </div>
@@ -269,6 +280,8 @@
     const viewToggleLabel = document.getElementById("viewToggleLabel");
     const themeToggle = document.getElementById("themeToggle");
     const themeToggleLabel = document.getElementById("themeToggleLabel");
+    const themeIconSun = themeToggle ? themeToggle.querySelector('[data-theme-icon="sun"]') : null;
+    const themeIconMoon = themeToggle ? themeToggle.querySelector('[data-theme-icon="moon"]') : null;
 
     const markdownItFactory = window.markdownit;
     const md = typeof markdownItFactory === "function" ? markdownItFactory({ html: false, linkify: true, breaks: true }) : null;
@@ -304,6 +317,10 @@
       if (themeToggle) {
         themeToggle.setAttribute("aria-label", nextThemeLabel);
         themeToggle.setAttribute("aria-pressed", wantsDark ? "true" : "false");
+      }
+      if (themeIconSun && themeIconMoon) {
+        themeIconSun.classList.toggle("hidden", wantsDark);
+        themeIconMoon.classList.toggle("hidden", !wantsDark);
       }
       try {
         localStorage.setItem("peek-theme", wantsDark ? "dark" : "light");
