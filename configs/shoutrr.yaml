@@ -1,4 +1,4 @@
-display_name: Simple
+display_name: Shoutrr
 fields:
   badge: ""
   title: "{{ title }}"
