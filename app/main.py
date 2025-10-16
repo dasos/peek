@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 
 from .config_loader import ConfigBundle, compute_highlights, load_configs, render_fields
 from .store import InMemoryStore
-from .ui import render_ui_html
+from .ui import render_index_html, render_ui_html
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +28,12 @@ def create_app() -> FastAPI:
     store = InMemoryStore(configs.keys())
 
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+    @app.get("/", response_class=HTMLResponse)
+    async def index() -> HTMLResponse:
+        bundles = sorted(configs.values(), key=lambda bundle: bundle.display_name.lower())
+        html = render_index_html(bundles)
+        return HTMLResponse(content=html)
 
     @app.post("/api/{slug}")
     async def ingest(slug: str, request: Request) -> JSONResponse:

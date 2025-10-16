@@ -3,6 +3,7 @@
 ## Working Agreements
 - Commit frequently with meaningful descriptions.
 - Do not invent requirements. If anything is unclear, ask for clarification.
+- Keep this AGENTS.md file up to date
 
 ## Project Overview
 - Peek is a FastAPI service that ingests JSON payloads, renders configurable views with Jinja2 templates, and serves a lightweight dashboard.

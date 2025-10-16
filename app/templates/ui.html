@@ -5,113 +5,166 @@
   <title>{{ display_name }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      color-scheme: light dark;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background-color: #111;
-      color: #f0f0f0;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #111;
-      color: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      padding: 1rem 1.5rem;
-      background-color: #1b1b1b;
-      border-bottom: 1px solid #222;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    main {
-      flex: 1;
-      padding: 1rem 1.5rem 4rem;
-      overflow-y: auto;
-    }
-    .item {
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 0.75rem;
-      margin-bottom: 0.75rem;
-      background-color: #181818;
-      transition: border-color 0.2s;
-      cursor: pointer;
-    }
-    .item:hover {
-      border-color: #3c89ff;
-    }
-    .highlight-error {
-      border-color: #ff5555 !important;
-    }
-    .highlight-warning {
-      border-color: #ffae42 !important;
-    }
-    .meta {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .badge {
-      font-weight: 600;
-      padding: 0.25rem 0.5rem;
-      border-radius: 999px;
-      background-color: #2f2f2f;
-    }
-    .title {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-    .link {
-      color: #4da3ff;
-      font-size: 0.9rem;
-      text-decoration: none;
-    }
-    .link:hover {
-      text-decoration: underline;
-    }
-    .description {
-      margin-top: 0.5rem;
-      font-size: 0.95rem;
-      line-height: 1.4;
-    }
-    .timestamp {
-      margin-left: auto;
-      font-size: 0.75rem;
-      opacity: 0.7;
-    }
-    #loading {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.95rem;
-      opacity: 0.8;
-    }
-    dialog {
-      border: none;
-      border-radius: 10px;
-      max-width: 600px;
-      padding: 1.5rem;
-      background-color: #1a1a1a;
-      color: inherit;
-    }
-    dialog::backdrop {
-      background-color: rgba(0, 0, 0, 0.7);
-    }
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      background-color: #111;
-      padding: 1rem;
-      border-radius: 8px;
-      margin: 0;
-    }
-    #loadMore {
-      height: 1px;
-    }
+:root {
+  color-scheme: light dark;
+  /* Dark theme tokens (default) */
+  --bg: #111;
+  --bg-elev: #181818;
+  --surface: #1b1b1b;
+  --text: #f0f0f0;
+  --muted: rgba(240,240,240,0.7);
+  --border: #2a2a2a;
+  --border-hover: #3c89ff;
+  --badge: #2f2f2f;
+  --link: #4da3ff;
+  --error: #ff5555;
+  --warn: #ffae42;
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fff;
+    --bg-elev: #fafafa;
+    --surface: #fff;
+    --text: #111;
+    --muted: rgba(17,17,17,0.7);
+    --border: #e5e5e5;
+    --border-hover: #1a73e8;
+    --badge: #f2f2f2;
+    --link: #1a73e8;
+    --error: #d93025;
+    --warn: #b26a00;
+  }
+}
+
+/* Base */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+html { height: 100%; }
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  text-size-adjust: 100%;
+}
+
+/* Layout */
+header {
+  padding: 1rem 1.5rem;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+main {
+  flex: 1;
+  padding: 1rem 1.5rem 4rem;
+  overflow-y: auto; /* keep if you want only main to scroll */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Items */
+.item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--bg-elev);
+  transition: border-color 0.2s ease;
+}
+.item:hover { border-color: var(--border-hover); }
+.item:focus-visible {
+  outline: 2px solid var(--border-hover);
+  outline-offset: 2px;
+}
+
+/* States */
+.highlight-error { border-color: var(--error) !important; }
+.highlight-warning { border-color: var(--warn) !important; }
+/* Optional stronger state cue */
+.highlight-error { box-shadow: 0 0 0 2px color-mix(in oklab, var(--error) 30%, transparent); }
+.highlight-warning { box-shadow: 0 0 0 2px color-mix(in oklab, var(--warn) 30%, transparent); }
+
+/* Meta */
+.meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.badge {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background-color: var(--badge);
+}
+.title { font-size: 1.1rem; font-weight: 600; }
+.link {
+  color: var(--link);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+.link:focus-visible {
+  outline: 2px solid var(--border-hover);
+  outline-offset: 2px;
+}
+.description {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.timestamp {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Misc */
+#loading {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+dialog {
+  border: none;
+  border-radius: 10px;
+  max-width: 600px;
+  max-height: 80vh;
+  padding: 1.5rem;
+  background-color: var(--surface);
+  color: inherit;
+}
+dialog::backdrop { background-color: rgba(0,0,0,0.7); }
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-color: var(--bg);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+#loadMore {
+  display: block;
+  width: 100%;
+  height: 1px; /* sentinel for IO */
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; }
+}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" integrity="sha384-euuvJFcN7kYMZ8jr3vyz2hJfAl7YIXzt2M7vSFuk+r+LQ2Mbjsx8v6lS/gDliXL9" crossorigin="anonymous"></script>
 </head>
@@ -131,7 +184,11 @@
   </dialog>
   <script>
     const slug = {{ slug_json | safe }};
-    const md = window.markdownit({ html: false, linkify: false });
+    const markdownItFactory = window.markdownit;
+    const md = typeof markdownItFactory === "function" ? markdownItFactory({ html: false, linkify: false }) : null;
+    if (!md) {
+      console.warn("Markdown-it not available; falling back to plain text descriptions.");
+    }
     const container = document.getElementById("items");
     const loadingEl = document.getElementById("loading");
     const detailDialog = document.getElementById("detailDialog");
@@ -154,9 +211,22 @@
       }
     }
 
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
     function renderDescription(markdownText) {
       if (typeof markdownText !== "string") return "";
-      return md.render(markdownText);
+      if (md) {
+        return md.render(markdownText);
+      }
+      const escaped = escapeHtml(markdownText);
+      return escaped.replace(/\\n/g, "<br />");
     }
 
     function createItemElement(item) {
