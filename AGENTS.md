@@ -8,14 +8,15 @@
 ## Project Overview
 - Peek is a FastAPI service that ingests JSON payloads, renders configurable views with Jinja2 templates, and serves a lightweight dashboard.
 - Configurations in `configs/*.yaml` define per-stream display templates (`badge`, `title`, `link`, `description`) and optional highlight rules that map data into CSS classes.
-- The UI (served from `app/templates/index.html` and `app/templates/ui.html`) consumes `/api/{slug}` endpoints to display recent events and supports server-sent events for live updates.
+- The UI (served from `app/templates/index.html`) consumes the aggregated `/api/items` endpoint (with optional client-side filters) and `/api/stream` for SSE updates; ingestion routes remain `/api/{slug}`.
+- The Configurations sidebar starts with every stream visible; clicking entries toggles per-config filters that limit the aggregated view.
 - `README.md` contains the canonical quick-start for running via `docker-compose`.
 
 ## Code Structure
 - `app/main.py`: FastAPI application factory, routes for ingesting/listing items, SSE streaming, and HTML endpoints.
 - `app/config_loader.py`: Loads YAML configs, compiles Jinja templates, and evaluates highlight expressions.
 - `app/store.py`: In-memory storage with asyncio locks and subscriber queues.
-- `app/ui.py`: Helper to render Jinja HTML templates packaged in `app/templates/`.
+- `app/ui.py`: Helper to render the main dashboard template packaged in `app/templates/index.html`.
 - `configs/`: Example configs; filenames become slugs (`logs.yaml` → `/api/logs`).
 - `Dockerfile`, `docker-compose.yml`, `requirements.txt`: Container build, orchestration, and dependency pins.
 
@@ -38,14 +39,14 @@
 ## Development Practices
 - Maintain type hints and FastAPI response models style consistency already present in the codebase.
 - Keep asyncio usage non-blocking; avoid synchronous I/O in request handlers or store operations.
-- When adding templates or static assets, ensure CDN dependencies remain acceptable (currently using Tailwind and markdown-it via CDN).
+- When adding templates or static assets, ensure CDN dependencies remain acceptable (currently using markdown-it via CDN).
 - Follow existing logging style (`LOGGER.info(...)`) for observability.
 - Consider extracting shared logic into helpers when multiple routes need the same validation.
 
 ## Testing & Verification
 - There are no automated tests yet; when adding features, prefer FastAPI `TestClient` or pytest-based coverage.
 - Validate config changes with sample payloads via `curl` or HTTP clients and check UI rendering for highlight classes.
-- For SSE or filtering changes, manually test `/api/{slug}?q=...` and `/api/{slug}/stream` to ensure cursors and subscriptions behave as expected.
+- For SSE or filtering changes, manually test `/api/items?q=...` and `/api/stream` to ensure cursors and subscriptions behave as expected.
 
 ## Release & Deployment Notes
 - Docker image exposes port 8080 and expects configs under `/app/configs`.

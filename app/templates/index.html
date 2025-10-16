@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Peek</title>
@@ -20,226 +20,31 @@
         console.warn("Unable to determine theme preference", err);
       }
     })();
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: "#eef2ff",
-              100: "#e0e7ff",
-              500: "#6366f1",
-              600: "#4f46e5",
-              700: "#4338ca"
-            }
-          },
-          boxShadow: {
-            soft: "0 10px 35px -12px rgba(15, 23, 42, 0.35)",
-            "soft-dark": "0 15px 45px -18px rgba(15, 23, 42, 0.65)"
-          }
-        }
-      }
-    };
   </script>
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" integrity="sha384-euuvJFcN7kYMZ8jr3vyz2hJfAl7YIXzt2M7vSFuk+r+LQ2Mbjsx8v6lS/gDliXL9" crossorigin="anonymous"></script>
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --peek-page-bg: #ffffff;
-      --peek-text: #0b1120;
-      --peek-muted: #334155;
-      --peek-header-bg: rgba(255, 255, 255, 0.95);
-      --peek-header-border: rgba(15, 23, 42, 0.08);
-      --peek-panel-bg: #ffffff;
-      --peek-panel-border: rgba(148, 163, 184, 0.18);
-      --peek-aside-bg: #ffffff;
-      --peek-aside-border: rgba(148, 163, 184, 0.24);
-      --peek-empty-bg: #f8fafc;
-      --peek-table-header-bg: rgba(248, 250, 252, 0.95);
-      --peek-table-header-text: #1f2937;
-      --peek-row-hover: rgba(59, 130, 246, 0.12);
-      --peek-highlight-error-border: rgba(220, 38, 38, 0.85);
-      --peek-highlight-error-bg: rgba(254, 226, 226, 0.75);
-      --peek-highlight-warning-border: rgba(217, 119, 6, 0.85);
-      --peek-highlight-warning-bg: rgba(254, 243, 199, 0.7);
-      --peek-control-bg: #ffffff;
-      --peek-control-border: rgba(148, 163, 184, 0.35);
-      --peek-control-hover-bg: rgba(99, 102, 241, 0.12);
-      --peek-control-hover-border: rgba(99, 102, 241, 0.35);
-      --peek-control-text: #1f2937;
-    }
-    html.dark {
-      color-scheme: dark;
-      --peek-page-bg: #0b1120;
-      --peek-text: #e2e8f0;
-      --peek-muted: #94a3b8;
-      --peek-header-bg: rgba(15, 23, 42, 0.92);
-      --peek-header-border: rgba(148, 163, 184, 0.24);
-      --peek-panel-bg: rgba(15, 23, 42, 0.92);
-      --peek-panel-border: rgba(71, 85, 105, 0.45);
-      --peek-aside-bg: rgba(17, 24, 39, 0.92);
-      --peek-aside-border: rgba(71, 85, 105, 0.45);
-      --peek-empty-bg: rgba(30, 41, 59, 0.75);
-      --peek-table-header-bg: rgba(30, 41, 59, 0.85);
-      --peek-table-header-text: #dbeafe;
-      --peek-row-hover: rgba(79, 70, 229, 0.25);
-      --peek-highlight-error-border: rgba(248, 113, 113, 0.7);
-      --peek-highlight-error-bg: rgba(127, 29, 29, 0.45);
-      --peek-highlight-warning-border: rgba(251, 191, 36, 0.7);
-      --peek-highlight-warning-bg: rgba(146, 64, 14, 0.45);
-      --peek-control-bg: rgba(30, 41, 59, 0.9);
-      --peek-control-border: rgba(71, 85, 105, 0.55);
-      --peek-control-hover-bg: rgba(79, 70, 229, 0.28);
-      --peek-control-hover-border: rgba(129, 140, 248, 0.55);
-      --peek-control-text: #e2e8f0;
-    }
-    body {
-      background-color: var(--peek-page-bg);
-      color: var(--peek-text);
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    .peek-header {
-      background-color: var(--peek-header-bg);
-      border-bottom: 1px solid var(--peek-header-border);
-      backdrop-filter: blur(14px);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-    .peek-aside {
-      background-color: var(--peek-aside-bg);
-      border: 1px solid var(--peek-aside-border);
-      backdrop-filter: blur(10px);
-      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 20px 40px -28px rgba(15, 23, 42, 0.18);
-    }
-    .peek-panel {
-      background-color: var(--peek-panel-bg);
-      border: 1px solid var(--peek-panel-border);
-      backdrop-filter: blur(12px);
-      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 24px 48px -32px rgba(15, 23, 42, 0.2);
-    }
-    .peek-toggle {
-      background-color: var(--peek-control-bg);
-      color: var(--peek-control-text);
-      border: 1px solid var(--peek-control-border);
-      box-shadow: 0 16px 35px -24px rgba(15, 23, 42, 0.25);
-      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
-    }
-    .peek-toggle:hover {
-      background-color: var(--peek-control-hover-bg);
-      border-color: var(--peek-control-hover-border);
-      color: var(--peek-control-text);
-      box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.3);
-    }
-    .peek-toggle:focus-visible {
-      outline: 2px solid var(--peek-control-hover-border);
-      outline-offset: 2px;
-    }
-    .peek-empty {
-      background-color: var(--peek-empty-bg);
-      border: 1px dashed var(--peek-panel-border);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-    .peek-item {
-      border: 1px solid var(--peek-panel-border);
-      background-color: var(--peek-panel-bg);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-      box-shadow: 0 16px 36px -30px rgba(15, 23, 42, 0.2);
-    }
-    .peek-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 44px -30px rgba(15, 23, 42, 0.28);
-    }
-    .peek-item.highlight-error {
-      border-color: var(--peek-highlight-error-border) !important;
-      background-color: var(--peek-highlight-error-bg);
-    }
-    .peek-item.highlight-warning {
-      border-color: var(--peek-highlight-warning-border) !important;
-      background-color: var(--peek-highlight-warning-bg);
-    }
-    dialog.peek-dialog {
-      border-radius: 1rem;
-      padding: 1.5rem;
-      max-width: 720px;
-      width: min(90vw, 720px);
-      background-color: var(--peek-panel-bg);
-      color: var(--peek-text);
-      border: 1px solid var(--peek-panel-border);
-      box-shadow: 0 35px 80px -30px rgba(15, 23, 42, 0.5);
-    }
-    dialog.peek-dialog::backdrop {
-      background-color: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(3px);
-    }
-    table.peek-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.95rem;
-    }
-    table.peek-table thead th {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--peek-table-header-text);
-      background-color: var(--peek-table-header-bg);
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-    table.peek-table thead th,
-    table.peek-table tbody td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--peek-panel-border);
-      vertical-align: top;
-    }
-    table.peek-table tbody tr {
-      transition: background-color 0.2s ease, filter 0.2s ease;
-      border-left: 3px solid transparent;
-      cursor: pointer;
-    }
-    table.peek-table tbody tr:hover {
-      background-color: var(--peek-row-hover);
-    }
-    table.peek-table tbody tr.highlight-error {
-      background-color: var(--peek-highlight-error-bg);
-      border-left: 3px solid var(--peek-highlight-error-border);
-    }
-    table.peek-table tbody tr.highlight-warning {
-      background-color: var(--peek-highlight-warning-bg);
-      border-left: 3px solid var(--peek-highlight-warning-border);
-    }
-    .peek-table-description {
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 3;
-      overflow: hidden;
-    }
-  </style>
+  <link rel="stylesheet" href="/static/css/peek.css">
+
 </head>
-<body class="transition-colors duration-300 min-h-screen">
-  <div class="min-h-screen flex flex-col">
+<body class="peek-body">
+  <div class="peek-app">
     <header class="peek-header">
-      <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5">
-        <div>
-          <h1 class="text-xl font-semibold text-brand-600 dark:text-brand-200">Peek</h1>
-          <p class="text-sm text-slate-600 dark:text-slate-400">Monitor every stream from one elegant dashboard.</p>
+      <div class="peek-header-inner">
+        <div class="peek-header-brand">
+          <h1 class="peek-logo">Peek</h1>
+          <p class="peek-tagline">Monitor every stream from one elegant dashboard.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <button id="viewToggle" type="button" class="peek-toggle inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition">
+        <div class="peek-header-actions">
+          <button id="viewToggle" type="button" class="peek-toggle peek-toggle--pill">
             <span id="viewToggleLabel">Toggle layout</span>
           </button>
-          <button id="themeToggle" type="button" class="peek-toggle inline-flex items-center justify-center rounded-full px-3 py-2 transition">
+          <button id="themeToggle" type="button" class="peek-toggle peek-toggle--icon">
             <span id="themeToggleLabel" class="sr-only">Toggle theme</span>
-            <span aria-hidden="true" class="flex h-5 w-5 items-center justify-center">
-              <svg data-theme-icon="sun" class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <span aria-hidden="true" class="peek-theme-icon">
+              <svg data-theme-icon="sun" class="peek-theme-icon__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"></circle>
                 <path d="M12 3.25v1.5M12 19.25v1.5M4.75 12h-1.5M20.75 12h-1.5M6.17 6.17l-1.06-1.06M18.89 18.89l-1.06-1.06M6.17 17.83l-1.06 1.06M18.89 5.11l-1.06 1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
               </svg>
-              <svg data-theme-icon="moon" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <svg data-theme-icon="moon" class="peek-theme-icon__glyph hidden" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
               </svg>
             </span>
@@ -248,33 +53,33 @@
       </div>
     </header>
 
-    <main class="flex-1">
-      <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 lg:flex-row">
-        <aside class="lg:w-64">
-          <div class="peek-aside rounded-3xl p-4">
-            <h2 class="px-2 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Configurations</h2>
-            <div id="configList" class="mt-3 flex flex-col gap-2" role="tablist" aria-label="Available configurations"></div>
-            <p id="noConfigsMessage" class="mt-6 hidden rounded-2xl px-4 py-6 text-center text-sm text-slate-600 dark:text-slate-400 peek-empty">
+    <main class="peek-main">
+      <div class="peek-main-inner">
+        <aside class="peek-sidebar">
+          <div class="peek-aside">
+            <h2 class="peek-section-title">Configurations</h2>
+            <div id="configList" class="peek-config-list" role="group" aria-label="Available configurations"></div>
+            <p id="noConfigsMessage" class="peek-config-empty peek-empty hidden">
               No configurations are currently available. Add a config to begin streaming updates.
             </p>
           </div>
         </aside>
-        <section class="flex-1">
-          <div class="peek-panel flex flex-col gap-4 rounded-3xl p-6">
-            <div>
-              <h2 id="activeConfigTitle" class="text-lg font-semibold text-slate-900 dark:text-slate-100">Select a configuration</h2>
-              <p id="activeConfigSubtitle" class="text-sm text-slate-600 dark:text-slate-400">Choose a stream on the left to see live activity.</p>
+        <section class="peek-content">
+            <div class="peek-panel peek-panel--main">
+            <div class="peek-panel-header">
+              <h2 id="activeConfigTitle" class="peek-panel-title">All configurations</h2>
+              <p id="activeConfigSubtitle" class="peek-panel-subtitle">Showing the latest entries across every configuration.</p>
             </div>
-            <div id="emptyState" class="hidden peek-empty rounded-2xl px-6 py-12 text-center">
-              <h3 class="text-base font-semibold text-slate-700 dark:text-slate-200">No entries yet</h3>
-              <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">New items for this configuration will appear here automatically.</p>
+            <div id="emptyState" class="peek-empty-state peek-empty hidden">
+              <h3 class="peek-empty-title">No entries yet</h3>
+              <p class="peek-empty-body">New items matching your filters will appear here automatically.</p>
             </div>
-            <div id="itemsContainer" data-view-mode="list" class="block"></div>
-            <div id="loading" class="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-400 hidden">
-              <span class="inline-flex h-2 w-2 animate-ping rounded-full bg-brand-500"></span>
+            <div id="itemsContainer" data-view-mode="list" class="peek-items peek-items--list"></div>
+            <div id="loading" class="peek-loading hidden">
+              <span class="peek-loading__dot"></span>
               Loading…
             </div>
-            <div id="loadMoreSentinel" class="h-8 w-full"></div>
+            <div id="loadMoreSentinel" class="peek-load-more"></div>
           </div>
         </section>
       </div>
@@ -282,11 +87,11 @@
   </div>
 
   <dialog id="detailDialog" class="peek-dialog">
-    <div class="flex items-center justify-between gap-3">
-      <h3 class="text-lg font-semibold">Item details</h3>
-      <button id="closeDialog" type="button" class="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">Close</button>
+    <div class="peek-dialog-header">
+      <h3 class="peek-dialog-title">Item details</h3>
+      <button id="closeDialog" type="button" class="peek-toggle peek-toggle--small">Close</button>
     </div>
-    <pre id="detailJson" class="mt-4 max-h-[60vh] overflow-auto rounded-2xl bg-slate-900 px-4 py-4 text-xs text-slate-100 dark:bg-slate-950"></pre>
+    <pre id="detailJson" class="peek-dialog-json"></pre>
   </dialog>
 
   <script>
@@ -297,6 +102,7 @@
     const loadingEl = document.getElementById("loading");
     const loadMoreSentinel = document.getElementById("loadMoreSentinel");
     const emptyStateEl = document.getElementById("emptyState");
+    const emptyStateBody = emptyStateEl ? emptyStateEl.querySelector(".peek-empty-body") : null;
     const activeConfigTitle = document.getElementById("activeConfigTitle");
     const activeConfigSubtitle = document.getElementById("activeConfigSubtitle");
     const detailDialog = document.getElementById("detailDialog");
@@ -315,8 +121,18 @@
       console.warn("Markdown-it not available; falling back to plain text descriptions.");
     }
 
-    let activeSlug = null;
+    const configDisplayNameBySlug = new Map(configs.map((config) => [config.slug, config.display_name]));
+    const selectedSlugs = new Set();
+    const state = {
+      items: [],
+      nextCursor: null,
+      fetching: false,
+      initialized: false
+    };
+    const itemById = new Map();
+    let visibleItems = [];
     let eventSource = null;
+    let reconnectTimeout = null;
     let viewMode = "list";
 
     try {
@@ -357,7 +173,7 @@
     }
 
     function initThemeButton() {
-      let initialTheme = "light";
+      let initialTheme = "dark";
       try {
         const storedTheme = localStorage.getItem("peek-theme");
         if (storedTheme === "dark" || storedTheme === "light") {
@@ -380,8 +196,8 @@
       viewMode = mode === "card" ? "card" : "list";
       itemsContainer.dataset.viewMode = viewMode;
       itemsContainer.className = viewMode === "card"
-        ? "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
-        : "block";
+        ? "peek-items peek-items--grid"
+        : "peek-items peek-items--list";
       if (viewToggle) {
         viewToggle.setAttribute("aria-pressed", viewMode === "card" ? "true" : "false");
       }
@@ -457,18 +273,51 @@
       }
     }
 
-    const stateBySlug = new Map();
-
-    function getState(slug) {
-      if (!stateBySlug.has(slug)) {
-        stateBySlug.set(slug, {
-          items: [],
-          nextCursor: null,
-          fetching: false,
-          initialized: false
-        });
+    function resolveConfigSlug(slug) {
+      if (typeof slug !== "string" || slug.trim() === "") {
+        return "Unknown configuration";
       }
-      return stateBySlug.get(slug);
+      return configDisplayNameBySlug.get(slug) || slug;
+    }
+
+    function resolveConfigName(item) {
+      if (!item) {
+        return "Unknown configuration";
+      }
+      if (typeof item.config_display_name === "string" && item.config_display_name.trim()) {
+        return item.config_display_name;
+      }
+      return resolveConfigSlug(item.config);
+    }
+
+    function computeCounts() {
+      const counts = new Map();
+      state.items.forEach((item) => {
+        const slug = item?.config;
+        if (!slug) {
+          return;
+        }
+        counts.set(slug, (counts.get(slug) || 0) + 1);
+      });
+      return counts;
+    }
+
+    function toggleConfig(slug) {
+      if (selectedSlugs.has(slug)) {
+        selectedSlugs.delete(slug);
+      } else {
+        selectedSlugs.add(slug);
+      }
+      renderConfigList();
+      renderItems();
+      updateActiveMeta();
+    }
+
+    function getFilteredItems() {
+      if (!configs.length || selectedSlugs.size === 0 || selectedSlugs.size === configs.length) {
+        return state.items.slice();
+      }
+      return state.items.filter((item) => selectedSlugs.has(item.config));
     }
 
     function renderConfigList() {
@@ -479,53 +328,68 @@
       }
       noConfigsMessage.classList.add("hidden");
 
+      const counts = computeCounts();
       configs.forEach((config) => {
-        const isActive = config.slug === activeSlug;
+        const isSelected = selectedSlugs.has(config.slug);
         const button = document.createElement("button");
         button.type = "button";
-        button.className = [
-          "group flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition",
-          isActive
-            ? "border-brand-500/70 bg-brand-500/10 text-brand-600 shadow-sm dark:border-brand-500/70 dark:bg-brand-500/20 dark:text-brand-100"
-            : "border-slate-200 bg-white text-slate-600 hover:border-brand-400 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-900/60"
-        ].join(" ");
-        button.setAttribute("role", "tab");
+        const baseClasses = ["peek-config-button"];
+        if (isSelected) {
+          baseClasses.push("peek-config-button-active");
+        }
+        button.className = baseClasses.join(" ");
+        button.setAttribute("role", "checkbox");
+        button.setAttribute("aria-checked", isSelected ? "true" : "false");
         button.setAttribute("data-slug", config.slug);
-        button.setAttribute("aria-selected", isActive ? "true" : "false");
+        const count = counts.get(config.slug) || 0;
         button.innerHTML = `
-          <span class="flex flex-col">
-            <span class="text-sm font-semibold text-slate-700 dark:text-slate-100">${escapeHtml(config.display_name)}</span>
-            <span class="text-xs text-slate-600 group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-200">${escapeHtml(config.slug)}</span>
+          <span class="peek-config-button__meta">
+            <span class="peek-config-button__name">${escapeHtml(config.display_name)}</span>
+            <span class="peek-config-button__slug">${escapeHtml(config.slug)}</span>
           </span>
-          <span class="inline-flex items-center justify-center rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-slate-600 shadow-sm dark:bg-slate-900/70 dark:text-slate-300">Live</span>
+          <span class="peek-config-button__status">${count} entr${count === 1 ? "y" : "ies"}</span>
         `;
         button.addEventListener("click", () => {
-          setActiveConfig(config.slug);
+          toggleConfig(config.slug);
         });
         configListEl.appendChild(button);
       });
     }
 
     function renderItems() {
-      if (!activeSlug) {
-        itemsContainer.innerHTML = "";
+      visibleItems = getFilteredItems();
+      itemsContainer.innerHTML = "";
+
+      if (!state.initialized) {
         emptyStateEl.classList.add("hidden");
         return;
       }
-      const state = getState(activeSlug);
-      const items = state.items || [];
-      itemsContainer.innerHTML = "";
 
-      if (!items.length) {
+      if (!visibleItems.length) {
+        if (!configs.length) {
+          if (emptyStateBody) {
+            emptyStateBody.textContent = "Add a configuration to begin ingesting data.";
+          }
+        } else if (selectedSlugs.size > 0 && state.items.length) {
+          if (emptyStateBody) {
+            emptyStateBody.textContent = "No entries match the selected configurations yet.";
+          }
+        } else if (emptyStateBody) {
+          emptyStateBody.textContent = "New items will appear here automatically.";
+        }
         emptyStateEl.classList.remove("hidden");
         return;
       }
+
       emptyStateEl.classList.add("hidden");
 
       if (viewMode === "card") {
-        items.forEach((item) => {
+        visibleItems.forEach((item) => {
           const article = document.createElement("article");
-          article.className = "peek-item rounded-3xl p-5";
+          article.className = "peek-item peek-item--card";
+          if (item?.config) {
+            article.dataset.config = item.config;
+          }
 
           const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
           highlights.forEach((highlight) => {
@@ -533,17 +397,17 @@
           });
 
           const header = document.createElement("div");
-          header.className = "flex flex-wrap items-center gap-x-3 gap-y-2";
+          header.className = "peek-item-header";
 
           if (item?.view?.badge) {
             const badge = document.createElement("span");
-            badge.className = "inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
+            badge.className = "peek-item-badge";
             badge.textContent = item.view.badge;
             header.appendChild(badge);
           }
 
           const title = document.createElement("h3");
-          title.className = "text-base font-semibold text-slate-900 dark:text-slate-100";
+          title.className = "peek-item-title";
           title.textContent = item?.view?.title || "Untitled entry";
           header.appendChild(title);
 
@@ -553,7 +417,7 @@
             link.href = linkHref;
             link.target = "_blank";
             link.rel = "noopener noreferrer";
-            link.className = "text-sm font-medium text-brand-600 hover:text-brand-500 underline-offset-4 hover:underline dark:text-brand-300 dark:hover:text-brand-200";
+            link.className = "peek-item-link";
             link.textContent = "Open link";
             link.addEventListener("click", (event) => {
               event.stopPropagation();
@@ -561,22 +425,27 @@
             header.appendChild(link);
           }
 
+          const configLabel = document.createElement("span");
+          configLabel.className = "peek-item-config";
+          configLabel.textContent = resolveConfigName(item);
+          header.appendChild(configLabel);
+
           const timestamp = document.createElement("time");
-          timestamp.className = "ml-auto text-xs text-slate-600 dark:text-slate-400";
+          timestamp.className = "peek-item-timestamp";
           timestamp.dateTime = item.ts || "";
           timestamp.textContent = formatTimestamp(item.ts);
           header.appendChild(timestamp);
 
           const description = document.createElement("div");
-          description.className = "prose prose-sm max-w-none text-slate-600 dark:prose-invert dark:text-slate-300";
+          description.className = "peek-item-description peek-markdown";
           description.innerHTML = renderDescription(item?.view?.description || "");
 
           const footer = document.createElement("div");
-          footer.className = "mt-4 flex items-center justify-between gap-3";
+          footer.className = "peek-item-footer";
 
           const detailButton = document.createElement("button");
           detailButton.type = "button";
-          detailButton.className = "inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-400 dark:hover:text-brand-200";
+          detailButton.className = "peek-toggle peek-toggle--small";
           detailButton.textContent = "View details";
           detailButton.addEventListener("click", (event) => {
             event.stopPropagation();
@@ -601,13 +470,13 @@
       }
 
       const frame = document.createElement("div");
-      frame.className = "peek-panel overflow-hidden rounded-2xl";
+      frame.className = "peek-table-wrapper peek-panel";
       const scroll = document.createElement("div");
-      scroll.className = "w-full overflow-x-auto";
+      scroll.className = "peek-table-scroll";
       const table = document.createElement("table");
-      table.className = "peek-table min-w-full text-sm text-left";
+      table.className = "peek-table";
       const colGroup = document.createElement("colgroup");
-      ["28%", "40%", "12%", "12%", "8%"].forEach((width) => {
+      ["18%", "26%", "32%", "12%", "8%", "4%"].forEach((width) => {
         const col = document.createElement("col");
         col.style.width = width;
         colGroup.appendChild(col);
@@ -615,13 +484,13 @@
       table.appendChild(colGroup);
       const thead = document.createElement("thead");
       const headerRow = document.createElement("tr");
-      const headerLabels = ["Title", "Description", "Link", "Timestamp", "Actions"];
+      const headerLabels = ["Configuration", "Title", "Description", "Link", "Timestamp", "Actions"];
       headerLabels.forEach((label, index) => {
         const th = document.createElement("th");
         th.scope = "col";
         th.textContent = label;
         if (index === headerLabels.length - 1) {
-          th.className = "text-right";
+          th.className = "peek-table-heading--right";
         }
         headerRow.appendChild(th);
       });
@@ -629,9 +498,12 @@
       table.appendChild(thead);
 
       const tbody = document.createElement("tbody");
-      items.forEach((item) => {
+      visibleItems.forEach((item) => {
         const tr = document.createElement("tr");
-        tr.className = "group";
+        tr.className = "peek-table-row";
+        if (item?.config) {
+          tr.dataset.config = item.config;
+        }
         const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
         highlights.forEach((highlight) => {
           tr.classList.add(highlight);
@@ -640,43 +512,48 @@
           openDetail(item);
         });
 
+        const configCell = document.createElement("td");
+        configCell.className = "peek-table-cell peek-table-cell--config";
+        configCell.textContent = resolveConfigName(item);
+        tr.appendChild(configCell);
+
         const titleCell = document.createElement("td");
-        titleCell.className = "align-top";
+        titleCell.className = "peek-table-cell peek-table-cell--title";
         const titleLayout = document.createElement("div");
-        titleLayout.className = "flex flex-col gap-1";
+        titleLayout.className = "peek-table-title";
         if (item?.view?.badge) {
           const badge = document.createElement("span");
-          badge.className = "inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
+          badge.className = "peek-item-badge peek-item-badge--compact";
           badge.textContent = item.view.badge;
           titleLayout.appendChild(badge);
         }
         const titleText = document.createElement("span");
-        titleText.className = "text-sm font-semibold text-slate-900 dark:text-slate-100";
+        titleText.className = "peek-table-title-text";
         titleText.textContent = item?.view?.title || "Untitled entry";
         titleLayout.appendChild(titleText);
         titleCell.appendChild(titleLayout);
 
         const descriptionCell = document.createElement("td");
-        descriptionCell.className = "align-top text-sm text-slate-600 dark:text-slate-300";
+        descriptionCell.className = "peek-table-cell peek-table-cell--description";
         const descriptionContent = document.createElement("div");
-        descriptionContent.className = "prose prose-sm max-w-none text-slate-600 dark:prose-invert dark:text-slate-300 peek-table-description";
+        descriptionContent.className = "peek-markdown peek-table-description";
         const renderedDescription = renderDescription(item?.view?.description || "");
         if (renderedDescription.trim()) {
           descriptionContent.innerHTML = renderedDescription;
         } else {
-          descriptionContent.innerHTML = '<span class="text-slate-500 dark:text-slate-500">—</span>';
+          descriptionContent.innerHTML = '<span class="peek-table-placeholder">—</span>';
         }
         descriptionCell.appendChild(descriptionContent);
 
         const linkCell = document.createElement("td");
-        linkCell.className = "align-top";
+        linkCell.className = "peek-table-cell";
         const linkHref = safeHref(item?.view?.link);
         if (linkHref) {
           const link = document.createElement("a");
           link.href = linkHref;
           link.target = "_blank";
           link.rel = "noopener noreferrer";
-          link.className = "inline-flex items-center gap-1 text-sm font-medium text-brand-600 underline-offset-4 hover:text-brand-500 hover:underline dark:text-brand-300 dark:hover:text-brand-200";
+          link.className = "peek-item-link peek-item-link--table";
           link.textContent = "Open link";
           link.addEventListener("click", (event) => {
             event.stopPropagation();
@@ -684,23 +561,23 @@
           linkCell.appendChild(link);
         } else {
           const noLink = document.createElement("span");
-          noLink.className = "text-sm text-slate-500 dark:text-slate-500";
+          noLink.className = "peek-table-placeholder";
           noLink.textContent = "—";
           linkCell.appendChild(noLink);
         }
 
         const timestampCell = document.createElement("td");
-        timestampCell.className = "align-top text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap";
+        timestampCell.className = "peek-table-cell peek-table-cell--timestamp";
         const timestamp = document.createElement("time");
         timestamp.dateTime = item.ts || "";
         timestamp.textContent = formatTimestamp(item.ts);
         timestampCell.appendChild(timestamp);
 
         const actionCell = document.createElement("td");
-        actionCell.className = "align-top text-right";
+        actionCell.className = "peek-table-cell peek-table-cell--actions";
         const detailButton = document.createElement("button");
         detailButton.type = "button";
-        detailButton.className = "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-400 dark:hover:text-brand-200";
+        detailButton.className = "peek-toggle peek-toggle--tiny";
         detailButton.textContent = "Details";
         detailButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -723,29 +600,62 @@
     }
 
     function openDetail(item) {
-      detailJson.textContent = JSON.stringify(item, null, 2);
+      if (!detailDialog) {
+        return;
+      }
+      if (detailJson) {
+        detailJson.textContent = JSON.stringify(item, null, 2);
+      }
       if (typeof detailDialog.showModal === "function") {
         detailDialog.showModal();
       }
     }
 
-    closeDialog.addEventListener("click", () => {
-      detailDialog.close();
-    });
+    if (closeDialog && detailDialog) {
+      closeDialog.addEventListener("click", () => {
+        if (typeof detailDialog.close === "function") {
+          detailDialog.close();
+        }
+      });
+    }
 
     function updateActiveMeta() {
-      if (!activeSlug) {
-        activeConfigTitle.textContent = "Select a configuration";
-        activeConfigSubtitle.textContent = "Choose a stream on the left to see live activity.";
+      if (!activeConfigTitle || !activeConfigSubtitle) {
         return;
       }
-      const config = configs.find((entry) => entry.slug === activeSlug);
-      activeConfigTitle.textContent = config ? config.display_name : activeSlug;
-      const state = getState(activeSlug);
-      const count = state.items.length;
-      activeConfigSubtitle.textContent = count
-        ? `${count} entr${count === 1 ? "y" : "ies"} loaded. New activity appears instantly.`
-        : "Listening for new activity…";
+
+      if (!configs.length) {
+        activeConfigTitle.textContent = "No configurations available";
+        activeConfigSubtitle.textContent = "Add a configuration to begin ingesting data.";
+        return;
+      }
+
+      if (!state.initialized) {
+        activeConfigTitle.textContent = "All configurations";
+        activeConfigSubtitle.textContent = "Loading the latest activity…";
+        return;
+      }
+
+      const totalItems = state.items.length;
+      const visibleCount = visibleItems.length;
+      const totalConfigs = configs.length;
+
+      if (selectedSlugs.size === 0 || selectedSlugs.size === totalConfigs) {
+        activeConfigTitle.textContent = "All configurations";
+        activeConfigSubtitle.textContent = totalItems
+          ? `${totalItems} entr${totalItems === 1 ? "y" : "ies"} loaded across ${totalConfigs} configuration${totalConfigs === 1 ? "" : "s"}.`
+          : "Listening for new activity across every configuration…";
+        return;
+      }
+
+      const selectedNames = configs
+        .filter((config) => selectedSlugs.has(config.slug))
+        .map((config) => config.display_name);
+
+      activeConfigTitle.textContent = selectedNames.join(", ");
+      activeConfigSubtitle.textContent = visibleCount
+        ? `${visibleCount} entr${visibleCount === 1 ? "y" : "ies"} from ${selectedSlugs.size} selected configuration${selectedSlugs.size === 1 ? "" : "s"}.`
+        : "Listening for new activity from the selected configurations…";
     }
 
     function updateLoading(isLoading) {
@@ -753,86 +663,95 @@
     }
 
     const observer = new IntersectionObserver((entries) => {
-      if (!activeSlug) return;
-      const state = getState(activeSlug);
-      if (!state.nextCursor || state.fetching) return;
+      if (!state.nextCursor || state.fetching) {
+        return;
+      }
       if (entries.some((entry) => entry.isIntersecting)) {
-        fetchItems(activeSlug, { append: true });
+        fetchItems({ append: true });
       }
     });
-    observer.observe(loadMoreSentinel);
 
-    async function fetchItems(slug, { append = false, cursorOverride = null } = {}) {
-      const state = getState(slug);
-      if (state.fetching) return;
-      state.fetching = true;
-      if (slug === activeSlug) {
-        updateLoading(true);
+    if (loadMoreSentinel) {
+      observer.observe(loadMoreSentinel);
+    }
+
+    async function fetchItems({ append = false, cursorOverride = null } = {}) {
+      if (state.fetching) {
+        return;
       }
+      const cursorToUse = cursorOverride ?? (append ? state.nextCursor : null);
+      if (append && !cursorToUse) {
+        return;
+      }
+      state.fetching = true;
+      updateLoading(true);
 
       const params = new URLSearchParams({ limit: "50" });
-      const cursorToUse = cursorOverride ?? (append ? state.nextCursor : null);
       if (cursorToUse) {
         params.set("cursor", cursorToUse);
       }
 
       try {
-        const response = await fetch(`/api/${slug}?${params.toString()}`);
+        const response = await fetch(`/api/items?${params.toString()}`);
         if (!response.ok) {
           throw new Error(`Failed to load items: ${response.status}`);
         }
         const payload = await response.json();
         const items = Array.isArray(payload.items) ? payload.items : [];
-        if (!append) {
-          state.items = [];
-        }
         items.forEach((item) => {
-          const existingIndex = state.items.findIndex((candidate) => candidate.id === item.id);
-          if (existingIndex >= 0) {
-            state.items.splice(existingIndex, 1);
+          if (!item || !item.id) {
+            return;
           }
-          state.items.push(item);
+          itemById.set(item.id, item);
         });
+        state.items = Array.from(itemById.values());
         state.items.sort((a, b) => (a.ts < b.ts ? 1 : -1));
+        while (state.items.length > 500) {
+          const removed = state.items.pop();
+          if (removed && removed.id) {
+            itemById.delete(removed.id);
+          }
+        }
         state.nextCursor = payload.next_cursor || null;
         state.initialized = true;
-        if (slug === activeSlug) {
-          renderItems();
-          updateActiveMeta();
-        }
+        renderConfigList();
+        renderItems();
       } catch (err) {
         console.error(err);
       } finally {
         state.fetching = false;
-        if (slug === activeSlug) {
-          updateLoading(false);
-        }
-      }
-    }
-
-    function prependItem(slug, item) {
-      const state = getState(slug);
-      const existingIndex = state.items.findIndex((candidate) => candidate.id === item.id);
-      if (existingIndex >= 0) {
-        state.items.splice(existingIndex, 1);
-      }
-      state.items.unshift(item);
-      if (state.items.length > 500) {
-        state.items.length = 500;
-      }
-      if (slug === activeSlug) {
-        renderItems();
+        updateLoading(false);
         updateActiveMeta();
       }
     }
 
-    function connectStream(slug) {
+    function upsertItem(item) {
+      if (!item || !item.id) {
+        return;
+      }
+      itemById.set(item.id, item);
+      state.items = Array.from(itemById.values());
+      state.items.sort((a, b) => (a.ts < b.ts ? 1 : -1));
+      while (state.items.length > 500) {
+        const removed = state.items.pop();
+        if (removed && removed.id) {
+          itemById.delete(removed.id);
+        }
+      }
+      state.initialized = true;
+    }
+
+    function connectStream() {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
       if (eventSource) {
         eventSource.close();
         eventSource = null;
       }
       try {
-        eventSource = new EventSource(`/api/${slug}/stream`);
+        eventSource = new EventSource("/api/stream");
       } catch (err) {
         console.error("Failed to connect to stream", err);
         return;
@@ -840,7 +759,10 @@
       eventSource.addEventListener("message", (event) => {
         try {
           const item = JSON.parse(event.data);
-          prependItem(slug, item);
+          upsertItem(item);
+          renderConfigList();
+          renderItems();
+          updateActiveMeta();
         } catch (err) {
           console.error("Unable to parse stream payload", err);
         }
@@ -848,38 +770,28 @@
       eventSource.addEventListener("error", () => {
         if (eventSource) {
           eventSource.close();
+          eventSource = null;
         }
-        setTimeout(() => {
-          if (activeSlug === slug) {
-            connectStream(slug);
-          }
+        reconnectTimeout = window.setTimeout(() => {
+          connectStream();
         }, 3000);
       });
     }
 
-    function setActiveConfig(slug) {
-      if (activeSlug === slug) return;
-      activeSlug = slug;
-      renderConfigList();
-      updateActiveMeta();
-      renderItems();
-      const state = getState(slug);
-      if (!state.initialized) {
-        fetchItems(slug, { append: false });
-      } else {
-        renderItems();
-      }
-      connectStream(slug);
-    }
+    renderConfigList();
+    renderItems();
+    updateActiveMeta();
+    fetchItems();
+    connectStream();
 
-    if (!configs.length) {
-      activeSlug = null;
-      renderConfigList();
-      updateActiveMeta();
-      renderItems();
-    } else {
-      setActiveConfig(configs[0].slug);
-    }
+    window.addEventListener("beforeunload", () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+    });
   </script>
 </body>
 </html>

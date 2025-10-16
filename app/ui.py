@@ -14,17 +14,6 @@ _env = Environment(
 )
 
 
-def render_ui_html(slug: str, display_name: str) -> str:
-    try:
-        template = _env.get_template("ui.html")
-    except TemplateNotFound as exc:
-        raise RuntimeError("UI template 'ui.html' not found") from exc
-
-    # Pre-render slug to JSON so the template can embed it directly in scripts.
-    slug_json = json.dumps(slug)
-    return template.render(slug_json=slug_json, display_name=display_name)
-
-
 def render_index_html(configs: Iterable[ConfigBundle]) -> str:
     try:
         template = _env.get_template("index.html")

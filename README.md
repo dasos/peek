@@ -3,6 +3,7 @@
 ## Run with docker-compose
 - `docker-compose up --build`
 - Service listens on `http://localhost:8080`; configs from `./configs` mounted read-only.
+- The dashboard is available at the root path (`/`) and lists all configured streams.
 
 ## Add a config
 - Place a YAML file in `./configs`; the filename (without extension) becomes the slug.

@@ -35,6 +35,15 @@ class InMemoryStore:
         async with bucket.lock:
             return list(bucket.items)
 
+    async def list_all_items(self) -> List[Dict[str, Any]]:
+        items: List[Dict[str, Any]] = []
+        # Collect a snapshot of items from each bucket; each bucket stores newest-first.
+        for bucket in self._buckets.values():
+            async with bucket.lock:
+                items.extend(bucket.items)
+        items.sort(key=lambda item: item.get("ts", ""), reverse=True)
+        return items
+
     async def find_item(self, slug: str, item_id: str) -> Optional[Dict[str, Any]]:
         bucket = self.ensure_slug(slug)
         async with bucket.lock:
