@@ -201,10 +201,10 @@
           <p class="text-sm text-slate-600 dark:text-slate-400">Monitor every stream from one elegant dashboard.</p>
         </div>
         <div class="flex items-center gap-3">
-          <button id="viewToggle" type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
+          <button id="viewToggle" type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
             <span id="viewToggleLabel">Toggle layout</span>
           </button>
-          <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
+          <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
             <span id="themeToggleLabel">Toggle theme</span>
           </button>
         </div>
@@ -443,7 +443,7 @@
           "group flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition",
           isActive
             ? "border-brand-500/70 bg-brand-500/10 text-brand-600 shadow-sm dark:border-brand-500/70 dark:bg-brand-500/20 dark:text-brand-100"
-            : "border-transparent bg-slate-100/60 text-slate-600 hover:border-slate-300 hover:bg-white dark:bg-slate-900/40 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900/60"
+            : "border-slate-200 bg-white text-slate-600 hover:border-brand-400 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-900/60"
         ].join(" ");
         button.setAttribute("role", "tab");
         button.setAttribute("data-slug", config.slug);
