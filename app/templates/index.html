@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <title>Peek</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function () {
+      try {
+        const stored = localStorage.getItem("peek-theme");
+        const theme = stored === "dark" ? "dark" : "light";
+        if (theme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.setProperty("color-scheme", theme === "dark" ? "dark" : "light");
+      } catch (err) {
+        console.warn("Unable to determine theme preference", err);
+      }
+    })();
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: "#eef2ff",
+              100: "#e0e7ff",
+              500: "#6366f1",
+              600: "#4f46e5",
+              700: "#4338ca"
+            }
+          },
+          boxShadow: {
+            soft: "0 10px 35px -12px rgba(15, 23, 42, 0.35)",
+            "soft-dark": "0 15px 45px -18px rgba(15, 23, 42, 0.65)"
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" integrity="sha384-euuvJFcN7kYMZ8jr3vyz2hJfAl7YIXzt2M7vSFuk+r+LQ2Mbjsx8v6lS/gDliXL9" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --peek-page-bg: #f8fafc;
+      --peek-text: #0f172a;
+      --peek-muted: #475569;
+      --peek-header-bg: rgba(248, 250, 252, 0.96);
+      --peek-header-border: rgba(15, 23, 42, 0.08);
+      --peek-panel-bg: #ffffff;
+      --peek-panel-border: rgba(148, 163, 184, 0.28);
+      --peek-aside-bg: #ffffff;
+      --peek-aside-border: rgba(148, 163, 184, 0.28);
+      --peek-empty-bg: #f1f5f9;
+      --peek-table-header-bg: rgba(241, 245, 249, 0.9);
+      --peek-table-header-text: #475569;
+      --peek-row-hover: rgba(99, 102, 241, 0.12);
+      --peek-highlight-error-border: rgba(248, 113, 113, 0.9);
+      --peek-highlight-error-bg: rgba(254, 226, 226, 0.6);
+      --peek-highlight-warning-border: rgba(251, 191, 36, 0.9);
+      --peek-highlight-warning-bg: rgba(254, 243, 199, 0.55);
+    }
+    html.dark {
+      color-scheme: dark;
+      --peek-page-bg: #0b1120;
+      --peek-text: #e2e8f0;
+      --peek-muted: #94a3b8;
+      --peek-header-bg: rgba(15, 23, 42, 0.92);
+      --peek-header-border: rgba(148, 163, 184, 0.24);
+      --peek-panel-bg: rgba(15, 23, 42, 0.92);
+      --peek-panel-border: rgba(71, 85, 105, 0.45);
+      --peek-aside-bg: rgba(17, 24, 39, 0.92);
+      --peek-aside-border: rgba(71, 85, 105, 0.45);
+      --peek-empty-bg: rgba(30, 41, 59, 0.75);
+      --peek-table-header-bg: rgba(30, 41, 59, 0.85);
+      --peek-table-header-text: #dbeafe;
+      --peek-row-hover: rgba(79, 70, 229, 0.25);
+      --peek-highlight-error-border: rgba(248, 113, 113, 0.7);
+      --peek-highlight-error-bg: rgba(127, 29, 29, 0.45);
+      --peek-highlight-warning-border: rgba(251, 191, 36, 0.7);
+      --peek-highlight-warning-bg: rgba(146, 64, 14, 0.45);
+    }
+    body {
+      background-color: var(--peek-page-bg);
+      color: var(--peek-text);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .peek-header {
+      background-color: var(--peek-header-bg);
+      border-bottom: 1px solid var(--peek-header-border);
+      backdrop-filter: blur(14px);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .peek-aside {
+      background-color: var(--peek-aside-bg);
+      border: 1px solid var(--peek-aside-border);
+      backdrop-filter: blur(10px);
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 22px 45px -28px rgba(15, 23, 42, 0.28);
+    }
+    .peek-panel {
+      background-color: var(--peek-panel-bg);
+      border: 1px solid var(--peek-panel-border);
+      backdrop-filter: blur(12px);
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 30px 60px -35px rgba(15, 23, 42, 0.32);
+    }
+    .peek-empty {
+      background-color: var(--peek-empty-bg);
+      border: 1px dashed var(--peek-panel-border);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .peek-item {
+      border: 1px solid var(--peek-panel-border);
+      background-color: var(--peek-panel-bg);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+      box-shadow: 0 18px 45px -35px rgba(15, 23, 42, 0.35);
+    }
+    .peek-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 55px -32px rgba(15, 23, 42, 0.42);
+    }
+    .peek-item.highlight-error {
+      border-color: var(--peek-highlight-error-border) !important;
+      background-color: var(--peek-highlight-error-bg);
+    }
+    .peek-item.highlight-warning {
+      border-color: var(--peek-highlight-warning-border) !important;
+      background-color: var(--peek-highlight-warning-bg);
+    }
+    dialog.peek-dialog {
+      border-radius: 1rem;
+      padding: 1.5rem;
+      max-width: 720px;
+      width: min(90vw, 720px);
+      background-color: var(--peek-panel-bg);
+      color: var(--peek-text);
+      border: 1px solid var(--peek-panel-border);
+      box-shadow: 0 35px 80px -30px rgba(15, 23, 42, 0.5);
+    }
+    dialog.peek-dialog::backdrop {
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+    }
+    table.peek-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    table.peek-table thead th {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--peek-table-header-text);
+      background-color: var(--peek-table-header-bg);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    table.peek-table thead th,
+    table.peek-table tbody td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--peek-panel-border);
+      vertical-align: top;
+    }
+    table.peek-table tbody tr {
+      transition: background-color 0.2s ease, filter 0.2s ease;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+    }
+    table.peek-table tbody tr:hover {
+      background-color: var(--peek-row-hover);
+    }
+    table.peek-table tbody tr.highlight-error {
+      background-color: var(--peek-highlight-error-bg);
+      border-left: 3px solid var(--peek-highlight-error-border);
+    }
+    table.peek-table tbody tr.highlight-warning {
+      background-color: var(--peek-highlight-warning-bg);
+      border-left: 3px solid var(--peek-highlight-warning-border);
+    }
+    .peek-table-description {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+  <div class="min-h-screen flex flex-col">
+    <header class="peek-header">
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5">
+        <div>
+          <h1 class="text-xl font-semibold text-brand-600 dark:text-brand-200">Peek Observatory</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Monitor every stream from one elegant dashboard.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="viewToggle" type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
+            <span id="viewToggleLabel">Toggle layout</span>
+          </button>
+          <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
+            <span id="themeToggleLabel">Toggle theme</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1">
+      <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 lg:flex-row">
+        <aside class="lg:w-64">
+          <div class="peek-aside rounded-3xl p-4">
+            <h2 class="px-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Configurations</h2>
+            <div id="configList" class="mt-3 flex flex-col gap-2" role="tablist" aria-label="Available configurations"></div>
+            <p id="noConfigsMessage" class="mt-6 hidden rounded-2xl px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400 peek-empty">
+              No configurations are currently available. Add a config to begin streaming updates.
+            </p>
+          </div>
+        </aside>
+        <section class="flex-1">
+          <div class="peek-panel flex flex-col gap-4 rounded-3xl p-6">
+            <div>
+              <h2 id="activeConfigTitle" class="text-lg font-semibold text-slate-900 dark:text-slate-100">Select a configuration</h2>
+              <p id="activeConfigSubtitle" class="text-sm text-slate-500 dark:text-slate-400">Choose a stream on the left to see live activity.</p>
+            </div>
+            <div id="emptyState" class="hidden peek-empty rounded-2xl px-6 py-12 text-center">
+              <h3 class="text-base font-semibold text-slate-700 dark:text-slate-200">No entries yet</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">New items for this configuration will appear here automatically.</p>
+            </div>
+            <div id="itemsContainer" data-view-mode="list" class="block"></div>
+            <div id="loading" class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400 hidden">
+              <span class="inline-flex h-2 w-2 animate-ping rounded-full bg-brand-500"></span>
+              Loading…
+            </div>
+            <div id="loadMoreSentinel" class="h-8 w-full"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="detailDialog" class="peek-dialog">
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="text-lg font-semibold">Item details</h3>
+      <button id="closeDialog" type="button" class="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">Close</button>
+    </div>
+    <pre id="detailJson" class="mt-4 max-h-[60vh] overflow-auto rounded-2xl bg-slate-900 px-4 py-4 text-xs text-slate-100 dark:bg-slate-950"></pre>
+  </dialog>
+
+  <script>
+    const configs = {{ configs_json | safe }};
+    const configListEl = document.getElementById("configList");
+    const noConfigsMessage = document.getElementById("noConfigsMessage");
+    const itemsContainer = document.getElementById("itemsContainer");
+    const loadingEl = document.getElementById("loading");
+    const loadMoreSentinel = document.getElementById("loadMoreSentinel");
+    const emptyStateEl = document.getElementById("emptyState");
+    const activeConfigTitle = document.getElementById("activeConfigTitle");
+    const activeConfigSubtitle = document.getElementById("activeConfigSubtitle");
+    const detailDialog = document.getElementById("detailDialog");
+    const detailJson = document.getElementById("detailJson");
+    const closeDialog = document.getElementById("closeDialog");
+    const viewToggle = document.getElementById("viewToggle");
+    const viewToggleLabel = document.getElementById("viewToggleLabel");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeToggleLabel = document.getElementById("themeToggleLabel");
+
+    const markdownItFactory = window.markdownit;
+    const md = typeof markdownItFactory === "function" ? markdownItFactory({ html: false, linkify: true, breaks: true }) : null;
+    if (!md) {
+      console.warn("Markdown-it not available; falling back to plain text descriptions.");
+    }
+
+    let activeSlug = null;
+    let eventSource = null;
+    let viewMode = "list";
+
+    try {
+      const storedView = localStorage.getItem("peek-view-mode");
+      if (storedView === "list" || storedView === "card") {
+        viewMode = storedView;
+      }
+    } catch (err) {
+      console.warn("Unable to load view preference", err);
+    }
+
+    function applyTheme(theme) {
+      const wantsDark = theme === "dark";
+      document.documentElement.classList.toggle("dark", wantsDark);
+      document.documentElement.dataset.theme = wantsDark ? "dark" : "light";
+      document.documentElement.style.setProperty("color-scheme", wantsDark ? "dark" : "light");
+      if (document.body) {
+        document.body.classList.toggle("dark", wantsDark);
+      }
+      const nextThemeLabel = wantsDark ? "Switch to light theme" : "Switch to dark theme";
+      if (themeToggleLabel) {
+        themeToggleLabel.textContent = nextThemeLabel;
+      }
+      if (themeToggle) {
+        themeToggle.setAttribute("aria-label", nextThemeLabel);
+        themeToggle.setAttribute("aria-pressed", wantsDark ? "true" : "false");
+      }
+      try {
+        localStorage.setItem("peek-theme", wantsDark ? "dark" : "light");
+      } catch (err) {
+        console.warn("Unable to persist theme preference", err);
+      }
+    }
+
+    function initThemeButton() {
+      let initialTheme = "light";
+      try {
+        const storedTheme = localStorage.getItem("peek-theme");
+        if (storedTheme === "dark" || storedTheme === "light") {
+          initialTheme = storedTheme;
+        }
+      } catch (err) {
+        console.warn("Unable to read stored theme preference", err);
+      }
+      applyTheme(initialTheme);
+      if (!themeToggle) {
+        return;
+      }
+      themeToggle.addEventListener("click", () => {
+        const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
+        applyTheme(next);
+      });
+    }
+
+    function applyViewMode(mode) {
+      viewMode = mode === "card" ? "card" : "list";
+      itemsContainer.dataset.viewMode = viewMode;
+      itemsContainer.className = viewMode === "card"
+        ? "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+        : "block";
+      if (viewToggle) {
+        viewToggle.setAttribute("aria-pressed", viewMode === "card" ? "true" : "false");
+      }
+      const nextViewLabel = viewMode === "card" ? "Switch to list view" : "Switch to card view";
+      if (viewToggleLabel) {
+        viewToggleLabel.textContent = nextViewLabel;
+      }
+      if (viewToggle) {
+        viewToggle.setAttribute("aria-label", nextViewLabel);
+      }
+      try {
+        localStorage.setItem("peek-view-mode", viewMode);
+      } catch (err) {
+        console.warn("Unable to store view preference", err);
+      }
+      renderItems();
+    }
+
+    if (viewToggle) {
+      viewToggle.addEventListener("click", () => {
+        const next = viewMode === "card" ? "list" : "card";
+        applyViewMode(next);
+      });
+    }
+
+    initThemeButton();
+    applyViewMode(viewMode);
+
+    function safeHref(url) {
+      if (typeof url !== "string" || url.trim().length === 0) return null;
+      try {
+        const parsed = new URL(url, window.location.origin);
+        if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+          return parsed.href;
+        }
+        return null;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function renderDescription(markdownText) {
+      if (typeof markdownText !== "string" || !markdownText.trim()) {
+        return "";
+      }
+      if (md) {
+        return md.render(markdownText);
+      }
+      const escaped = escapeHtml(markdownText);
+      return escaped.replace(/\\n/g, "<br />");
+    }
+
+    function formatTimestamp(value) {
+      if (typeof value !== "string") return "";
+      try {
+        const date = new Date(value);
+        if (Number.isNaN(date.valueOf())) return value;
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(date);
+      } catch (err) {
+        return value;
+      }
+    }
+
+    const stateBySlug = new Map();
+
+    function getState(slug) {
+      if (!stateBySlug.has(slug)) {
+        stateBySlug.set(slug, {
+          items: [],
+          nextCursor: null,
+          fetching: false,
+          initialized: false
+        });
+      }
+      return stateBySlug.get(slug);
+    }
+
+    function renderConfigList() {
+      configListEl.innerHTML = "";
+      if (!configs.length) {
+        noConfigsMessage.classList.remove("hidden");
+        return;
+      }
+      noConfigsMessage.classList.add("hidden");
+
+      configs.forEach((config) => {
+        const isActive = config.slug === activeSlug;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = [
+          "group flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition",
+          isActive
+            ? "border-brand-500/70 bg-brand-500/10 text-brand-600 shadow-sm dark:border-brand-500/70 dark:bg-brand-500/20 dark:text-brand-100"
+            : "border-transparent bg-slate-100/60 text-slate-600 hover:border-slate-300 hover:bg-white dark:bg-slate-900/40 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900/60"
+        ].join(" ");
+        button.setAttribute("role", "tab");
+        button.setAttribute("data-slug", config.slug);
+        button.setAttribute("aria-selected", isActive ? "true" : "false");
+        button.innerHTML = `
+          <span class="flex flex-col">
+            <span class="text-sm font-semibold">${escapeHtml(config.display_name)}</span>
+            <span class="text-xs text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-200">${escapeHtml(config.slug)}</span>
+          </span>
+          <span class="inline-flex items-center justify-center rounded-full bg-white/70 px-2.5 py-0.5 text-xs font-semibold text-slate-500 shadow-sm dark:bg-slate-900/70 dark:text-slate-300">Live</span>
+        `;
+        button.addEventListener("click", () => {
+          setActiveConfig(config.slug);
+        });
+        configListEl.appendChild(button);
+      });
+    }
+
+    function renderItems() {
+      if (!activeSlug) {
+        itemsContainer.innerHTML = "";
+        emptyStateEl.classList.add("hidden");
+        return;
+      }
+      const state = getState(activeSlug);
+      const items = state.items || [];
+      itemsContainer.innerHTML = "";
+
+      if (!items.length) {
+        emptyStateEl.classList.remove("hidden");
+        return;
+      }
+      emptyStateEl.classList.add("hidden");
+
+      if (viewMode === "card") {
+        items.forEach((item) => {
+          const article = document.createElement("article");
+          article.className = "peek-item rounded-3xl p-5";
+
+          const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
+          highlights.forEach((highlight) => {
+            article.classList.add(highlight);
+          });
+
+          const header = document.createElement("div");
+          header.className = "flex flex-wrap items-center gap-x-3 gap-y-2";
+
+          if (item?.view?.badge) {
+            const badge = document.createElement("span");
+            badge.className = "inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
+            badge.textContent = item.view.badge;
+            header.appendChild(badge);
+          }
+
+          const title = document.createElement("h3");
+          title.className = "text-base font-semibold text-slate-900 dark:text-slate-100";
+          title.textContent = item?.view?.title || "Untitled entry";
+          header.appendChild(title);
+
+          const linkHref = safeHref(item?.view?.link);
+          if (linkHref) {
+            const link = document.createElement("a");
+            link.href = linkHref;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.className = "text-sm font-medium text-brand-600 hover:text-brand-500 underline-offset-4 hover:underline dark:text-brand-300 dark:hover:text-brand-200";
+            link.textContent = "Open link";
+            link.addEventListener("click", (event) => {
+              event.stopPropagation();
+            });
+            header.appendChild(link);
+          }
+
+          const timestamp = document.createElement("time");
+          timestamp.className = "ml-auto text-xs text-slate-500 dark:text-slate-400";
+          timestamp.dateTime = item.ts || "";
+          timestamp.textContent = formatTimestamp(item.ts);
+          header.appendChild(timestamp);
+
+          const description = document.createElement("div");
+          description.className = "prose prose-sm max-w-none text-slate-600 dark:prose-invert dark:text-slate-300";
+          description.innerHTML = renderDescription(item?.view?.description || "");
+
+          const footer = document.createElement("div");
+          footer.className = "mt-4 flex items-center justify-between gap-3";
+
+          const detailButton = document.createElement("button");
+          detailButton.type = "button";
+          detailButton.className = "inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-400 dark:hover:text-brand-200";
+          detailButton.textContent = "View details";
+          detailButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openDetail(item);
+          });
+
+          footer.appendChild(detailButton);
+
+          article.appendChild(header);
+          if (description.innerHTML.trim()) {
+            article.appendChild(description);
+          }
+          article.appendChild(footer);
+
+          article.addEventListener("click", () => {
+            openDetail(item);
+          });
+
+          itemsContainer.appendChild(article);
+        });
+        return;
+      }
+
+      const frame = document.createElement("div");
+      frame.className = "peek-panel overflow-hidden rounded-2xl";
+      const scroll = document.createElement("div");
+      scroll.className = "w-full overflow-x-auto";
+      const table = document.createElement("table");
+      table.className = "peek-table min-w-full text-sm text-left";
+      const colGroup = document.createElement("colgroup");
+      ["28%", "40%", "12%", "12%", "8%"].forEach((width) => {
+        const col = document.createElement("col");
+        col.style.width = width;
+        colGroup.appendChild(col);
+      });
+      table.appendChild(colGroup);
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      const headerLabels = ["Title", "Description", "Link", "Timestamp", "Actions"];
+      headerLabels.forEach((label, index) => {
+        const th = document.createElement("th");
+        th.scope = "col";
+        th.textContent = label;
+        if (index === headerLabels.length - 1) {
+          th.className = "text-right";
+        }
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      items.forEach((item) => {
+        const tr = document.createElement("tr");
+        tr.className = "group";
+        const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
+        highlights.forEach((highlight) => {
+          tr.classList.add(highlight);
+        });
+        tr.addEventListener("click", () => {
+          openDetail(item);
+        });
+
+        const titleCell = document.createElement("td");
+        titleCell.className = "align-top";
+        const titleLayout = document.createElement("div");
+        titleLayout.className = "flex flex-col gap-1";
+        if (item?.view?.badge) {
+          const badge = document.createElement("span");
+          badge.className = "inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
+          badge.textContent = item.view.badge;
+          titleLayout.appendChild(badge);
+        }
+        const titleText = document.createElement("span");
+        titleText.className = "text-sm font-semibold text-slate-900 dark:text-slate-100";
+        titleText.textContent = item?.view?.title || "Untitled entry";
+        titleLayout.appendChild(titleText);
+        titleCell.appendChild(titleLayout);
+
+        const descriptionCell = document.createElement("td");
+        descriptionCell.className = "align-top text-sm text-slate-600 dark:text-slate-300";
+        const descriptionContent = document.createElement("div");
+        descriptionContent.className = "prose prose-sm max-w-none text-slate-600 dark:prose-invert dark:text-slate-300 peek-table-description";
+        const renderedDescription = renderDescription(item?.view?.description || "");
+        if (renderedDescription.trim()) {
+          descriptionContent.innerHTML = renderedDescription;
+        } else {
+          descriptionContent.innerHTML = '<span class="text-slate-400 dark:text-slate-500">—</span>';
+        }
+        descriptionCell.appendChild(descriptionContent);
+
+        const linkCell = document.createElement("td");
+        linkCell.className = "align-top";
+        const linkHref = safeHref(item?.view?.link);
+        if (linkHref) {
+          const link = document.createElement("a");
+          link.href = linkHref;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.className = "inline-flex items-center gap-1 text-sm font-medium text-brand-600 underline-offset-4 hover:text-brand-500 hover:underline dark:text-brand-300 dark:hover:text-brand-200";
+          link.textContent = "Open link";
+          link.addEventListener("click", (event) => {
+            event.stopPropagation();
+          });
+          linkCell.appendChild(link);
+        } else {
+          const noLink = document.createElement("span");
+          noLink.className = "text-sm text-slate-400 dark:text-slate-500";
+          noLink.textContent = "—";
+          linkCell.appendChild(noLink);
+        }
+
+        const timestampCell = document.createElement("td");
+        timestampCell.className = "align-top text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap";
+        const timestamp = document.createElement("time");
+        timestamp.dateTime = item.ts || "";
+        timestamp.textContent = formatTimestamp(item.ts);
+        timestampCell.appendChild(timestamp);
+
+        const actionCell = document.createElement("td");
+        actionCell.className = "align-top text-right";
+        const detailButton = document.createElement("button");
+        detailButton.type = "button";
+        detailButton.className = "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-400 dark:hover:text-brand-200";
+        detailButton.textContent = "Details";
+        detailButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          openDetail(item);
+        });
+        actionCell.appendChild(detailButton);
+
+        tr.appendChild(titleCell);
+        tr.appendChild(descriptionCell);
+        tr.appendChild(linkCell);
+        tr.appendChild(timestampCell);
+        tr.appendChild(actionCell);
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      scroll.appendChild(table);
+      frame.appendChild(scroll);
+      itemsContainer.appendChild(frame);
+    }
+
+    function openDetail(item) {
+      detailJson.textContent = JSON.stringify(item, null, 2);
+      if (typeof detailDialog.showModal === "function") {
+        detailDialog.showModal();
+      }
+    }
+
+    closeDialog.addEventListener("click", () => {
+      detailDialog.close();
+    });
+
+    function updateActiveMeta() {
+      if (!activeSlug) {
+        activeConfigTitle.textContent = "Select a configuration";
+        activeConfigSubtitle.textContent = "Choose a stream on the left to see live activity.";
+        return;
+      }
+      const config = configs.find((entry) => entry.slug === activeSlug);
+      activeConfigTitle.textContent = config ? config.display_name : activeSlug;
+      const state = getState(activeSlug);
+      const count = state.items.length;
+      activeConfigSubtitle.textContent = count
+        ? `${count} entr${count === 1 ? "y" : "ies"} loaded. New activity appears instantly.`
+        : "Listening for new activity…";
+    }
+
+    function updateLoading(isLoading) {
+      loadingEl.classList.toggle("hidden", !isLoading);
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (!activeSlug) return;
+      const state = getState(activeSlug);
+      if (!state.nextCursor || state.fetching) return;
+      if (entries.some((entry) => entry.isIntersecting)) {
+        fetchItems(activeSlug, { append: true });
+      }
+    });
+    observer.observe(loadMoreSentinel);
+
+    async function fetchItems(slug, { append = false, cursorOverride = null } = {}) {
+      const state = getState(slug);
+      if (state.fetching) return;
+      state.fetching = true;
+      if (slug === activeSlug) {
+        updateLoading(true);
+      }
+
+      const params = new URLSearchParams({ limit: "50" });
+      const cursorToUse = cursorOverride ?? (append ? state.nextCursor : null);
+      if (cursorToUse) {
+        params.set("cursor", cursorToUse);
+      }
+
+      try {
+        const response = await fetch(`/api/${slug}?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`Failed to load items: ${response.status}`);
+        }
+        const payload = await response.json();
+        const items = Array.isArray(payload.items) ? payload.items : [];
+        if (!append) {
+          state.items = [];
+        }
+        items.forEach((item) => {
+          const existingIndex = state.items.findIndex((candidate) => candidate.id === item.id);
+          if (existingIndex >= 0) {
+            state.items.splice(existingIndex, 1);
+          }
+          state.items.push(item);
+        });
+        state.items.sort((a, b) => (a.ts < b.ts ? 1 : -1));
+        state.nextCursor = payload.next_cursor || null;
+        state.initialized = true;
+        if (slug === activeSlug) {
+          renderItems();
+          updateActiveMeta();
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        state.fetching = false;
+        if (slug === activeSlug) {
+          updateLoading(false);
+        }
+      }
+    }
+
+    function prependItem(slug, item) {
+      const state = getState(slug);
+      const existingIndex = state.items.findIndex((candidate) => candidate.id === item.id);
+      if (existingIndex >= 0) {
+        state.items.splice(existingIndex, 1);
+      }
+      state.items.unshift(item);
+      if (state.items.length > 500) {
+        state.items.length = 500;
+      }
+      if (slug === activeSlug) {
+        renderItems();
+        updateActiveMeta();
+      }
+    }
+
+    function connectStream(slug) {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      try {
+        eventSource = new EventSource(`/api/${slug}/stream`);
+      } catch (err) {
+        console.error("Failed to connect to stream", err);
+        return;
+      }
+      eventSource.addEventListener("message", (event) => {
+        try {
+          const item = JSON.parse(event.data);
+          prependItem(slug, item);
+        } catch (err) {
+          console.error("Unable to parse stream payload", err);
+        }
+      });
+      eventSource.addEventListener("error", () => {
+        if (eventSource) {
+          eventSource.close();
+        }
+        setTimeout(() => {
+          if (activeSlug === slug) {
+            connectStream(slug);
+          }
+        }, 3000);
+      });
+    }
+
+    function setActiveConfig(slug) {
+      if (activeSlug === slug) return;
+      activeSlug = slug;
+      renderConfigList();
+      updateActiveMeta();
+      renderItems();
+      const state = getState(slug);
+      if (!state.initialized) {
+        fetchItems(slug, { append: false });
+      } else {
+        renderItems();
+      }
+      connectStream(slug);
+    }
+
+    if (!configs.length) {
+      activeSlug = null;
+      renderConfigList();
+      updateActiveMeta();
+      renderItems();
+    } else {
+      setActiveConfig(configs[0].slug);
+    }
+  </script>
+</body>
+</html>
