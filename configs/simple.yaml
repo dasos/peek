@@ -4,6 +4,4 @@ fields:
   title: "{{ title }}"
   link: "{{ link }}"
   description: |
-    Level: "{{ description }}"
-
-    {{ details|default('') }}
+    {{ description }}
