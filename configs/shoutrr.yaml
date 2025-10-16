@@ -1,0 +1,7 @@
+display_name: Simple
+fields:
+  badge: ""
+  title: "{{ title }}"
+  link: ""
+  description: |
+    {{ message }}
