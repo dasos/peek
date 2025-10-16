@@ -65,6 +65,11 @@
       --peek-highlight-error-bg: rgba(254, 226, 226, 0.75);
       --peek-highlight-warning-border: rgba(217, 119, 6, 0.85);
       --peek-highlight-warning-bg: rgba(254, 243, 199, 0.7);
+      --peek-control-bg: #ffffff;
+      --peek-control-border: rgba(148, 163, 184, 0.35);
+      --peek-control-hover-bg: rgba(99, 102, 241, 0.12);
+      --peek-control-hover-border: rgba(99, 102, 241, 0.35);
+      --peek-control-text: #1f2937;
     }
     html.dark {
       color-scheme: dark;
@@ -85,6 +90,11 @@
       --peek-highlight-error-bg: rgba(127, 29, 29, 0.45);
       --peek-highlight-warning-border: rgba(251, 191, 36, 0.7);
       --peek-highlight-warning-bg: rgba(146, 64, 14, 0.45);
+      --peek-control-bg: rgba(30, 41, 59, 0.9);
+      --peek-control-border: rgba(71, 85, 105, 0.55);
+      --peek-control-hover-bg: rgba(79, 70, 229, 0.28);
+      --peek-control-hover-border: rgba(129, 140, 248, 0.55);
+      --peek-control-text: #e2e8f0;
     }
     body {
       background-color: var(--peek-page-bg);
@@ -110,6 +120,24 @@
       backdrop-filter: blur(12px);
       transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
       box-shadow: 0 24px 48px -32px rgba(15, 23, 42, 0.2);
+    }
+    .peek-toggle {
+      background-color: var(--peek-control-bg);
+      color: var(--peek-control-text);
+      border: 1px solid var(--peek-control-border);
+      box-shadow: 0 16px 35px -24px rgba(15, 23, 42, 0.25);
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+    .peek-toggle:hover {
+      background-color: var(--peek-control-hover-bg);
+      border-color: var(--peek-control-hover-border);
+      color: var(--peek-control-text);
+      box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.3);
+    }
+    .peek-toggle:focus-visible {
+      outline: 2px solid var(--peek-control-hover-border);
+      outline-offset: 2px;
     }
     .peek-empty {
       background-color: var(--peek-empty-bg);
@@ -201,21 +229,19 @@
           <p class="text-sm text-slate-600 dark:text-slate-400">Monitor every stream from one elegant dashboard.</p>
         </div>
         <div class="flex items-center gap-3">
-          <button id="viewToggle" type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
+          <button id="viewToggle" type="button" class="peek-toggle inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition">
             <span id="viewToggleLabel">Toggle layout</span>
           </button>
-          <button id="themeToggle" type="button" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300">
-            <span class="flex items-center gap-2">
-              <span class="flex h-5 w-5 items-center justify-center">
-                <svg data-theme-icon="sun" class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"></circle>
-                  <path d="M12 3.25v1.5M12 19.25v1.5M4.75 12h-1.5M20.75 12h-1.5M6.17 6.17l-1.06-1.06M18.89 18.89l-1.06-1.06M6.17 17.83l-1.06 1.06M18.89 5.11l-1.06 1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                </svg>
-                <svg data-theme-icon="moon" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-              </span>
-              <span id="themeToggleLabel">Toggle theme</span>
+          <button id="themeToggle" type="button" class="peek-toggle inline-flex items-center justify-center rounded-full px-3 py-2 transition">
+            <span id="themeToggleLabel" class="sr-only">Toggle theme</span>
+            <span aria-hidden="true" class="flex h-5 w-5 items-center justify-center">
+              <svg data-theme-icon="sun" class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"></circle>
+                <path d="M12 3.25v1.5M12 19.25v1.5M4.75 12h-1.5M20.75 12h-1.5M6.17 6.17l-1.06-1.06M18.89 18.89l-1.06-1.06M6.17 17.83l-1.06 1.06M18.89 5.11l-1.06 1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+              </svg>
+              <svg data-theme-icon="moon" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
             </span>
           </button>
         </div>
@@ -316,6 +342,7 @@
       }
       if (themeToggle) {
         themeToggle.setAttribute("aria-label", nextThemeLabel);
+        themeToggle.setAttribute("title", nextThemeLabel);
         themeToggle.setAttribute("aria-pressed", wantsDark ? "true" : "false");
       }
       if (themeIconSun && themeIconMoon) {
