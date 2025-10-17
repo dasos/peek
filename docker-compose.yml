@@ -4,6 +4,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      CONFIG_DIR: /app/configs
+      CONFIG_PATHS: /app/config
+      DB_PATH: /app/data/peek.db
     volumes:
-      - ./configs:/app/configs:ro
+      - ./config:/app/config:ro
+      - ./data:/app/data

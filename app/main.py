@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config_loader import ConfigBundle, compute_highlights, load_configs, render_fields
-from .store import InMemoryStore
+from .store import SQLiteStore
 from .ui import render_index_html
 
 
@@ -26,13 +26,32 @@ def now_iso() -> str:
 
 
 def create_app() -> FastAPI:
-    config_dir = Path(os.getenv("CONFIG_DIR", "/app/configs"))
-    configs = load_configs(config_dir)
-    store = InMemoryStore(configs.keys())
+    raw_paths = os.getenv("CONFIG_PATHS")
+    if raw_paths:
+        config_dirs = [
+            Path(part.strip()).expanduser()
+            for part in raw_paths.split(os.pathsep)
+            if part and part.strip()
+        ]
+    else:
+        legacy_dir = os.getenv("CONFIG_DIR")
+        if legacy_dir:
+            config_dirs = [Path(legacy_dir).expanduser()]
+        else:
+            config_dirs = [Path("/app/config")]
+
+    configs = load_configs(config_dirs)
+
+    db_path = Path(os.getenv("DB_PATH", "./data/peek.db")).expanduser()
+    store = SQLiteStore(db_path, configs.keys())
 
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     static_dir = Path(__file__).resolve().parent / "static"
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+    @app.on_event("startup")
+    async def startup() -> None:
+        await store.initialize()
 
     @app.get("/", response_class=HTMLResponse)
     async def index() -> HTMLResponse:
