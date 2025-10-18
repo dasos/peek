@@ -7,93 +7,111 @@
   <script>
     (function () {
       try {
-        const stored = localStorage.getItem("peek-theme");
-        const theme = stored === "dark" ? "dark" : "light";
+        const theme = localStorage.getItem("peek-theme") === "dark" ? "dark" : "light";
         if (theme === "dark") {
           document.documentElement.classList.add("dark");
         } else {
           document.documentElement.classList.remove("dark");
         }
         document.documentElement.dataset.theme = theme;
+        document.documentElement.setAttribute("data-bs-theme", theme);
         document.documentElement.style.setProperty("color-scheme", theme === "dark" ? "dark" : "light");
       } catch (err) {
         console.warn("Unable to determine theme preference", err);
       }
     })();
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" integrity="sha384-euuvJFcN7kYMZ8jr3vyz2hJfAl7YIXzt2M7vSFuk+r+LQ2Mbjsx8v6lS/gDliXL9" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css"><!-- 5.3.8 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="/static/css/peek.css">
-
 </head>
-<body class="peek-body">
-  <div class="peek-app">
-    <header class="peek-header">
-      <div class="peek-header-inner">
-        <div class="peek-header-brand">
-          <h1 class="peek-logo">Peek</h1>
-          <p class="peek-tagline">Monitor every stream from one elegant dashboard.</p>
-        </div>
-        <div class="peek-header-actions">
-          <button id="viewToggle" type="button" class="peek-toggle peek-toggle--pill">
-            <span id="viewToggleLabel">Toggle layout</span>
+<body class="peek-body d-flex flex-column min-vh-100">
+  <nav class="navbar navbar-expand-lg border-bottom bg-body-tertiary">
+    <div class="container-fluid container-xxl py-3">
+      <div class="d-flex align-items-center w-100 gap-3">
+        <a class="navbar-brand fw-semibold fs-3 mb-0" href="#" aria-label="Peek dashboard home">Peek</a>
+        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#peekNavbar" aria-controls="peekNavbar" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+      <div class="collapse navbar-collapse mt-3 mt-lg-0" id="peekNavbar">
+        <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-3 ms-lg-auto w-100 w-lg-auto">
+          <div class="d-flex flex-row gap-2">
+            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#configOffcanvas" aria-controls="configOffcanvas">
+              <i class="bi bi-filter"></i>
+            </button>
+            <button id="viewToggle" type="button" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center">
+			  <span id="viewToggleLabel" class="visually-hidden">Toggle view, list or card</span>
+              <i data-view-icon="list" class="bi bi-list"></i>
+			  <i data-view-icon="card" class="bi bi-card-list"></i>
+            </button>
+          <button id="themeToggle" type="button" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center">
+            <span id="themeToggleLabel" class="visually-hidden">Toggle theme</span>
+              <i data-theme-icon="sun" class="bi bi-sun"></i>
+			  <i data-theme-icon="moon" class="bi bi-moon"></i>
           </button>
-          <button id="themeToggle" type="button" class="peek-toggle peek-toggle--icon">
-            <span id="themeToggleLabel" class="sr-only">Toggle theme</span>
-            <span aria-hidden="true" class="peek-theme-icon">
-              <svg data-theme-icon="sun" class="peek-theme-icon__glyph" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"></circle>
-                <path d="M12 3.25v1.5M12 19.25v1.5M4.75 12h-1.5M20.75 12h-1.5M6.17 6.17l-1.06-1.06M18.89 18.89l-1.06-1.06M6.17 17.83l-1.06 1.06M18.89 5.11l-1.06 1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-              </svg>
-              <svg data-theme-icon="moon" class="peek-theme-icon__glyph hidden" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-              </svg>
-            </span>
-          </button>
+		  </div>
         </div>
       </div>
-    </header>
+    </div>
+  </nav>
 
-    <main class="peek-main">
-      <div class="peek-main-inner">
-        <aside class="peek-sidebar">
-          <div class="peek-aside">
-            <h2 class="peek-section-title">Configurations</h2>
-            <div id="configList" class="peek-config-list" role="group" aria-label="Available configurations"></div>
-            <p id="noConfigsMessage" class="peek-config-empty peek-empty hidden">
-              No configurations are currently available. Add a config to begin streaming updates.
-            </p>
+  <main class="flex-grow-1 py-4">
+    <div class="container-fluid container-xxl">
+      <section class="row gy-4">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm peek-panel">
+            <div class="card-body p-4">
+              <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                  <h1 id="activeConfigTitle" class="h4 mb-1">All configurations</h1>
+                  <p id="activeConfigSubtitle" class="text-body-secondary mb-0">Showing the latest entries across every configuration.</p>
+                </div>
+                <div class="text-md-end">
+                  <span class="badge rounded-pill text-bg-primary" id="itemsCountBadge" hidden>0 items</span>
+                </div>
+              </div>
+              <div id="emptyState" class="alert alert-info text-center mt-4 hidden" role="status">
+                <h2 class="h5 mb-2">No entries yet</h2>
+                <p id="emptyStateMessage" class="mb-0">New items matching your filters will appear here automatically.</p>
+              </div>
+              <div id="itemsContainer" class="peek-items mt-4" data-view-mode="list"></div>
+              <div id="loading" class="d-flex justify-content-center align-items-center gap-2 py-4 hidden">
+                <div class="spinner-border" role="status" aria-hidden="true"></div>
+                <span>Loading…</span>
+              </div>
+              <div id="loadMoreSentinel" class="load-more-sentinel"></div>
+            </div>
           </div>
-        </aside>
-        <section class="peek-content">
-            <div class="peek-panel peek-panel--main">
-            <div class="peek-panel-header">
-              <h2 id="activeConfigTitle" class="peek-panel-title">All configurations</h2>
-              <p id="activeConfigSubtitle" class="peek-panel-subtitle">Showing the latest entries across every configuration.</p>
-            </div>
-            <div id="emptyState" class="peek-empty-state peek-empty hidden">
-              <h3 class="peek-empty-title">No entries yet</h3>
-              <p class="peek-empty-body">New items matching your filters will appear here automatically.</p>
-            </div>
-            <div id="itemsContainer" data-view-mode="list" class="peek-items peek-items--list"></div>
-            <div id="loading" class="peek-loading hidden">
-              <span class="peek-loading__dot"></span>
-              Loading…
-            </div>
-            <div id="loadMoreSentinel" class="peek-load-more"></div>
-          </div>
-        </section>
-      </div>
-    </main>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="configOffcanvas" aria-labelledby="configOffcanvasLabel">
+    <div class="offcanvas-header">
+      <h2 class="offcanvas-title h5 mb-0" id="configOffcanvasLabel">Streams</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column gap-3">
+      <p class="text-body-secondary small mb-0">Toggle configurations to refine the timeline. Everything is shown when no filters are active.</p>
+      <div id="configList" class="list-group gap-2" role="group" aria-label="Available configurations"></div>
+      <p id="noConfigsMessage" class="text-center text-body-secondary small hidden mb-0">
+        No configurations are currently available. Add a config to begin streaming updates.
+      </p>
+    </div>
   </div>
 
-  <dialog id="detailDialog" class="peek-dialog">
-    <div class="peek-dialog-header">
-      <h3 class="peek-dialog-title">Item details</h3>
-      <button id="closeDialog" type="button" class="peek-toggle peek-toggle--small">Close</button>
+  <dialog id="detailDialog" class="peek-dialog rounded-4 shadow-lg">
+    <div class="peek-dialog-header d-flex align-items-center justify-content-between">
+      <h3 class="peek-dialog-title h5 mb-0">Item details</h3>
+      <button id="closeDialog" type="button" class="btn btn-outline-secondary btn-sm">Close</button>
     </div>
-    <pre id="detailJson" class="peek-dialog-json"></pre>
+    <pre id="detailJson" class="peek-dialog-json rounded-3 mt-3 mb-0"></pre>
   </dialog>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const configs = {{ configs_json | safe }};
     const configListEl = document.getElementById("configList");
@@ -102,192 +120,212 @@
     const loadingEl = document.getElementById("loading");
     const loadMoreSentinel = document.getElementById("loadMoreSentinel");
     const emptyStateEl = document.getElementById("emptyState");
-    const emptyStateBody = emptyStateEl ? emptyStateEl.querySelector(".peek-empty-body") : null;
+    const emptyStateMessageEl = document.getElementById("emptyStateMessage");
+    const viewToggle = document.getElementById("viewToggle");
+    const themeToggle = document.getElementById("themeToggle");
+    const detailDialog = document.getElementById("detailDialog");
+    const closeDialog = document.getElementById("closeDialog");
+    const detailJson = document.getElementById("detailJson");
     const activeConfigTitle = document.getElementById("activeConfigTitle");
     const activeConfigSubtitle = document.getElementById("activeConfigSubtitle");
-    const detailDialog = document.getElementById("detailDialog");
-    const detailJson = document.getElementById("detailJson");
-    const closeDialog = document.getElementById("closeDialog");
-    const viewToggle = document.getElementById("viewToggle");
-    const viewToggleLabel = document.getElementById("viewToggleLabel");
-    const themeToggle = document.getElementById("themeToggle");
-    const themeToggleLabel = document.getElementById("themeToggleLabel");
-    const themeIconSun = themeToggle ? themeToggle.querySelector('[data-theme-icon="sun"]') : null;
-    const themeIconMoon = themeToggle ? themeToggle.querySelector('[data-theme-icon="moon"]') : null;
+    const itemsCountBadge = document.getElementById("itemsCountBadge");
+    const themeIconSun = document.querySelector('[data-theme-icon="sun"]');
+    const themeIconMoon = document.querySelector('[data-theme-icon="moon"]');
+	const viewIconCard = document.querySelector('[data-view-icon="card"]');
+	const viewIconList = document.querySelector('[data-view-icon="list"]');
+	const view = localStorage.getItem("peek-view") === "list" ? "list" : "card";
 
-    const markdownItFactory = window.markdownit;
-    const md = typeof markdownItFactory === "function" ? markdownItFactory({ html: false, linkify: true, breaks: true }) : null;
-    if (!md) {
-      console.warn("Markdown-it not available; falling back to plain text descriptions.");
+    let markdownParser;
+    try {
+      markdownParser = window.markdownit({
+        breaks: true,
+        linkify: true,
+      });
+    } catch (err) {
+      console.warn("Failed to load markdown-it", err);
+      markdownParser = null;
     }
 
-    const configDisplayNameBySlug = new Map(configs.map((config) => [config.slug, config.display_name]));
+    const itemById = new Map();
     const selectedSlugs = new Set();
     const state = {
-      items: [],
-      nextCursor: null,
+      viewMode: view,
       fetching: false,
-      initialized: false
+      cursor: null,
+      nextCursor: null,
+      items: [],
+      initialized: false,
+      countByConfig: new Map(),
     };
-    const itemById = new Map();
-    let visibleItems = [];
     let eventSource = null;
     let reconnectTimeout = null;
-    let viewMode = "list";
+    let visibleItems = [];
 
-    try {
-      const storedView = localStorage.getItem("peek-view-mode");
-      if (storedView === "list" || storedView === "card") {
-        viewMode = storedView;
-      }
-    } catch (err) {
-      console.warn("Unable to load view preference", err);
+    const listGroupBaseClass = "list-group-item list-group-item-action d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 rounded-3 peek-config-button";
+    const listGroupActiveClass = "active";
+
+    function escapeHtml(html) {
+      const span = document.createElement("span");
+      span.textContent = html ?? "";
+      return span.innerHTML;
     }
 
-    function applyTheme(theme) {
-      const wantsDark = theme === "dark";
-      document.documentElement.classList.toggle("dark", wantsDark);
-      document.documentElement.dataset.theme = wantsDark ? "dark" : "light";
-      document.documentElement.style.setProperty("color-scheme", wantsDark ? "dark" : "light");
-      if (document.body) {
-        document.body.classList.toggle("dark", wantsDark);
+    function safeHref(href) {
+      if (typeof href !== "string" || !href.trim()) {
+        return null;
       }
-      const nextThemeLabel = wantsDark ? "Switch to light theme" : "Switch to dark theme";
-      if (themeToggleLabel) {
-        themeToggleLabel.textContent = nextThemeLabel;
+      const trimmed = href.trim();
+      if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("/")) {
+        return trimmed;
       }
-      if (themeToggle) {
-        themeToggle.setAttribute("aria-label", nextThemeLabel);
-        themeToggle.setAttribute("title", nextThemeLabel);
-        themeToggle.setAttribute("aria-pressed", wantsDark ? "true" : "false");
+      return null;
+    }
+
+    function renderDescription(value) {
+      if (!value) {
+        return "";
       }
-      if (themeIconSun && themeIconMoon) {
-        themeIconSun.classList.toggle("hidden", wantsDark);
-        themeIconMoon.classList.toggle("hidden", !wantsDark);
+      if (markdownParser) {
+        try {
+          return markdownParser.render(value);
+        } catch (err) {
+          console.warn("Unable to render markdown", err);
+        }
+      }
+      return escapeHtml(value);
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) {
+        return "Unknown time";
       }
       try {
-        localStorage.setItem("peek-theme", wantsDark ? "dark" : "light");
+        const parsed = new Date(ts);
+        if (Number.isNaN(parsed.getTime())) {
+          return "Unknown time";
+        }
+        const relativeFormatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+        const now = Date.now();
+        const diffMs = parsed.getTime() - now;
+        const diffMinutes = Math.round(diffMs / 60000);
+        if (Math.abs(diffMinutes) < 60) {
+          return relativeFormatter.format(diffMinutes, "minute");
+        }
+        const diffHours = Math.round(diffMs / 3600000);
+        if (Math.abs(diffHours) < 24) {
+          return relativeFormatter.format(diffHours, "hour");
+        }
+        return parsed.toLocaleString();
+      } catch (err) {
+        return ts;
+      }
+    }
+
+    function resolveConfigName(item) {
+      if (!item || !configs.length) {
+        return "";
+      }
+      const config = configs.find((candidate) => candidate.slug === item.config);
+      return config?.display_name || item.config || "";
+    }
+
+    function updateLoading(show) {
+      if (!loadingEl) {
+        return;
+      }
+      loadingEl.classList.toggle("hidden", !show);
+    }
+
+    function syncViewToggleState() {
+      if (viewToggle) {
+        viewToggle.setAttribute("aria-pressed", state.viewMode === "card" ? "true" : "false");
+        viewToggle.dataset.viewMode = state.viewMode;
+      }
+        //const next = state.viewMode === "list" ? "Switch to cards" : "Switch to table";
+        //viewToggleLabel.textContent = next;
+	  if (state.viewMode === "list") {
+		viewIconCard?.classList.add("hidden");
+		viewIconList?.classList.remove("hidden");
+	  } else {
+		viewIconCard?.classList.remove("hidden");
+		viewIconList?.classList.add("hidden");
+	  }
+    }
+
+    function updateThemeIcons(nextTheme) {
+      if (nextTheme === "dark") {
+        themeIconSun?.classList.add("hidden");
+        themeIconMoon?.classList.remove("hidden");
+      } else {
+        themeIconSun?.classList.remove("hidden");
+        themeIconMoon?.classList.add("hidden");
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      document.documentElement.style.setProperty("color-scheme", next === "dark" ? "dark" : "light");
+      document.documentElement.setAttribute("data-bs-theme", next);
+      if (next === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      updateThemeIcons(next);
+      try {
+        localStorage.setItem("peek-theme", next);
       } catch (err) {
         console.warn("Unable to persist theme preference", err);
       }
     }
 
-    function initThemeButton() {
-      let initialTheme = "dark";
-      try {
-        const storedTheme = localStorage.getItem("peek-theme");
-        if (storedTheme === "dark" || storedTheme === "light") {
-          initialTheme = storedTheme;
-        }
+    function restoreTheme() {
+      const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      updateThemeIcons(current);
+    }
+
+    function toggleViewMode() {
+      state.viewMode = state.viewMode === "list" ? "card" : "list";
+      syncViewToggleState();
+      renderItems();
+	  
+	  try {
+        localStorage.setItem("peek-view", state.viewMode);
       } catch (err) {
-        console.warn("Unable to read stored theme preference", err);
+        console.warn("Unable to persist state preference", err);
       }
-      applyTheme(initialTheme);
-      if (!themeToggle) {
+	  
+    }
+
+    function openDetail(item) {
+      if (!item) {
         return;
       }
-      themeToggle.addEventListener("click", () => {
-        const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
-        applyTheme(next);
-      });
-    }
-
-    function applyViewMode(mode) {
-      viewMode = mode === "card" ? "card" : "list";
-      itemsContainer.dataset.viewMode = viewMode;
-      itemsContainer.className = viewMode === "card"
-        ? "peek-items peek-items--grid"
-        : "peek-items peek-items--list";
-      if (viewToggle) {
-        viewToggle.setAttribute("aria-pressed", viewMode === "card" ? "true" : "false");
+      const json = JSON.stringify(item, null, 2);
+      if (detailJson) {
+        detailJson.textContent = json;
       }
-      const nextViewLabel = viewMode === "card" ? "Switch to list view" : "Switch to card view";
-      if (viewToggleLabel) {
-        viewToggleLabel.textContent = nextViewLabel;
-      }
-      if (viewToggle) {
-        viewToggle.setAttribute("aria-label", nextViewLabel);
+      if (!detailDialog) {
+        return;
       }
       try {
-        localStorage.setItem("peek-view-mode", viewMode);
-      } catch (err) {
-        console.warn("Unable to store view preference", err);
-      }
-      renderItems();
-    }
-
-    if (viewToggle) {
-      viewToggle.addEventListener("click", () => {
-        const next = viewMode === "card" ? "list" : "card";
-        applyViewMode(next);
-      });
-    }
-
-    initThemeButton();
-    applyViewMode(viewMode);
-
-    function safeHref(url) {
-      if (typeof url !== "string" || url.trim().length === 0) return null;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-          return parsed.href;
-        }
-        return null;
-      } catch (err) {
-        return null;
+        detailDialog.showModal();
+      } catch (_err) {
+        detailDialog.setAttribute("open", "true");
       }
     }
 
-    function escapeHtml(str) {
-      return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function renderDescription(markdownText) {
-      if (typeof markdownText !== "string" || !markdownText.trim()) {
-        return "";
+    function closeDetail() {
+      if (!detailDialog) {
+        return;
       }
-      if (md) {
-        return md.render(markdownText);
+      if (typeof detailDialog.close === "function") {
+        detailDialog.close();
+      } else {
+        detailDialog.removeAttribute("open");
       }
-      const escaped = escapeHtml(markdownText);
-      return escaped.replace(/\\n/g, "<br />");
-    }
-
-    function formatTimestamp(value) {
-      if (typeof value !== "string") return "";
-      try {
-        const date = new Date(value);
-        if (Number.isNaN(date.valueOf())) return value;
-        return new Intl.DateTimeFormat(undefined, {
-          dateStyle: "medium",
-          timeStyle: "short"
-        }).format(date);
-      } catch (err) {
-        return value;
-      }
-    }
-
-    function resolveConfigSlug(slug) {
-      if (typeof slug !== "string" || slug.trim() === "") {
-        return "Unknown configuration";
-      }
-      return configDisplayNameBySlug.get(slug) || slug;
-    }
-
-    function resolveConfigName(item) {
-      if (!item) {
-        return "Unknown configuration";
-      }
-      if (typeof item.config_display_name === "string" && item.config_display_name.trim()) {
-        return item.config_display_name;
-      }
-      return resolveConfigSlug(item.config);
     }
 
     function computeCounts() {
@@ -321,33 +359,32 @@
     }
 
     function renderConfigList() {
-      configListEl.innerHTML = "";
-      if (!configs.length) {
-        noConfigsMessage.classList.remove("hidden");
+      if (!configListEl) {
         return;
       }
-      noConfigsMessage.classList.add("hidden");
+      configListEl.innerHTML = "";
+      if (!configs.length) {
+        noConfigsMessage?.classList.remove("hidden");
+        return;
+      }
+      noConfigsMessage?.classList.add("hidden");
 
       const counts = computeCounts();
       configs.forEach((config) => {
         const isSelected = selectedSlugs.has(config.slug);
         const button = document.createElement("button");
         button.type = "button";
-        const baseClasses = ["peek-config-button"];
-        if (isSelected) {
-          baseClasses.push("peek-config-button-active");
-        }
-        button.className = baseClasses.join(" ");
+        button.className = `${listGroupBaseClass}${isSelected ? ` ${listGroupActiveClass}` : ""}`;
         button.setAttribute("role", "checkbox");
         button.setAttribute("aria-checked", isSelected ? "true" : "false");
         button.setAttribute("data-slug", config.slug);
         const count = counts.get(config.slug) || 0;
         button.innerHTML = `
-          <span class="peek-config-button__meta">
-            <span class="peek-config-button__name">${escapeHtml(config.display_name)}</span>
-            <span class="peek-config-button__slug">${escapeHtml(config.slug)}</span>
+          <span class="d-flex flex-column">
+            <span class="fw-semibold">${escapeHtml(config.display_name)}</span>
+            <span class="text-body-secondary small">${escapeHtml(config.slug)}</span>
           </span>
-          <span class="peek-config-button__status">${count} entr${count === 1 ? "y" : "ies"}</span>
+          <span class="badge text-bg-secondary ms-sm-auto">${count} entr${count === 1 ? "y" : "ies"}</span>
         `;
         button.addEventListener("click", () => {
           toggleConfig(config.slug);
@@ -356,151 +393,144 @@
       });
     }
 
-    function renderItems() {
-      visibleItems = getFilteredItems();
-      itemsContainer.innerHTML = "";
-
-      if (!state.initialized) {
-        emptyStateEl.classList.add("hidden");
-        return;
+    function renderCard(item) {
+      const col = document.createElement("div");
+      col.className = "col-12 col-md-6 col-xxl-4";
+      const card = document.createElement("article");
+      card.className = "card h-100 peek-item-card";
+      card.tabIndex = 0;
+      if (item?.config) {
+        card.dataset.config = item.config;
       }
 
-      if (!visibleItems.length) {
-        if (!configs.length) {
-          if (emptyStateBody) {
-            emptyStateBody.textContent = "Add a configuration to begin ingesting data.";
-          }
-        } else if (selectedSlugs.size > 0 && state.items.length) {
-          if (emptyStateBody) {
-            emptyStateBody.textContent = "No entries match the selected configurations yet.";
-          }
-        } else if (emptyStateBody) {
-          emptyStateBody.textContent = "New items will appear here automatically.";
-        }
-        emptyStateEl.classList.remove("hidden");
-        return;
+      const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
+      highlights.forEach((highlight) => {
+        card.classList.add(highlight);
+      });
+
+      const body = document.createElement("div");
+      body.className = "card-body d-flex flex-column gap-3";
+	  
+	  
+	  
+	  const metaRow = document.createElement("div");
+      metaRow.className = "d-flex flex-wrap align-items-center gap-2";
+
+      const configLabel = document.createElement("span");
+      configLabel.className = "badge text-bg-secondary";
+      configLabel.textContent = resolveConfigName(item);
+      metaRow.appendChild(configLabel);
+
+	  
+	  
+	  const timestamp = document.createElement("time");
+      timestamp.className = "text-body-secondary small ms-auto";
+      timestamp.dateTime = item.ts || "";
+      timestamp.textContent = formatTimestamp(item.ts);
+      metaRow.appendChild(timestamp);
+	  
+	  
+
+      body.appendChild(metaRow);
+	  
+	  
+	  //
+	  
+
+      const header = document.createElement("div");
+      header.className = "d-flex flex-wrap align-items-center gap-2";
+
+      if (item?.view?.badge) {
+        const badge = document.createElement("span");
+        badge.className = "badge rounded-pill text-bg-info";
+        badge.textContent = item.view.badge;
+        header.appendChild(badge);
       }
 
-      emptyStateEl.classList.add("hidden");
+      const title = document.createElement("h3");
+      title.className = "h5 mb-0 flex-grow-1";
+      title.textContent = item?.view?.title || "Untitled entry";
+      header.appendChild(title);
 
-      if (viewMode === "card") {
-        visibleItems.forEach((item) => {
-          const article = document.createElement("article");
-          article.className = "peek-item peek-item--card";
-          if (item?.config) {
-            article.dataset.config = item.config;
-          }
+      body.appendChild(header);
 
-          const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
-          highlights.forEach((highlight) => {
-            article.classList.add(highlight);
-          });
+      const description = document.createElement("div");
+      description.className = "peek-item-description peek-markdown";
+      description.innerHTML = renderDescription(item?.view?.description || "");
+      if (description.innerHTML.trim()) {
+        body.appendChild(description);
+      }
+	  
+	  ///
 
-          const header = document.createElement("div");
-          header.className = "peek-item-header";
-
-          if (item?.view?.badge) {
-            const badge = document.createElement("span");
-            badge.className = "peek-item-badge";
-            badge.textContent = item.view.badge;
-            header.appendChild(badge);
-          }
-
-          const title = document.createElement("h3");
-          title.className = "peek-item-title";
-          title.textContent = item?.view?.title || "Untitled entry";
-          header.appendChild(title);
-
-          const linkHref = safeHref(item?.view?.link);
-          if (linkHref) {
-            const link = document.createElement("a");
-            link.href = linkHref;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.className = "peek-item-link";
-            link.textContent = "Open link";
-            link.addEventListener("click", (event) => {
-              event.stopPropagation();
-            });
-            header.appendChild(link);
-          }
-
-          const configLabel = document.createElement("span");
-          configLabel.className = "peek-item-config";
-          configLabel.textContent = resolveConfigName(item);
-          header.appendChild(configLabel);
-
-          const timestamp = document.createElement("time");
-          timestamp.className = "peek-item-timestamp";
-          timestamp.dateTime = item.ts || "";
-          timestamp.textContent = formatTimestamp(item.ts);
-          header.appendChild(timestamp);
-
-          const description = document.createElement("div");
-          description.className = "peek-item-description peek-markdown";
-          description.innerHTML = renderDescription(item?.view?.description || "");
-
-          const footer = document.createElement("div");
-          footer.className = "peek-item-footer";
-
-          const detailButton = document.createElement("button");
-          detailButton.type = "button";
-          detailButton.className = "peek-toggle peek-toggle--small";
-          detailButton.textContent = "View details";
-          detailButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-            openDetail(item);
-          });
-
-          footer.appendChild(detailButton);
-
-          article.appendChild(header);
-          if (description.innerHTML.trim()) {
-            article.appendChild(description);
-          }
-          article.appendChild(footer);
-
-          article.addEventListener("click", () => {
-            openDetail(item);
-          });
-
-          itemsContainer.appendChild(article);
+      const footer = document.createElement("div");
+      footer.className = "d-flex justify-content-end";
+	  
+	  
+	  const linkHref = safeHref(item?.view?.link);
+      if (linkHref) {
+        const link = document.createElement("a");
+        link.href = linkHref;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "btn btn-sm btn-outline-primary ms-auto";
+        link.textContent = "Open link";
+        link.addEventListener("click", (event) => {
+          event.stopPropagation();
         });
-        return;
+        footer.appendChild(link);
       }
+	  
+	  
 
-      const frame = document.createElement("div");
-      frame.className = "peek-table-wrapper peek-panel";
-      const scroll = document.createElement("div");
-      scroll.className = "peek-table-scroll";
-      const table = document.createElement("table");
-      table.className = "peek-table";
-      const colGroup = document.createElement("colgroup");
-      ["18%", "26%", "32%", "12%", "8%", "4%"].forEach((width) => {
-        const col = document.createElement("col");
-        col.style.width = width;
-        colGroup.appendChild(col);
+      const detailButton = document.createElement("button");
+      detailButton.type = "button";
+      detailButton.className = "btn btn-sm btn-outline-secondary";
+      detailButton.textContent = "View details";
+      detailButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openDetail(item);
       });
-      table.appendChild(colGroup);
-      const thead = document.createElement("thead");
-      const headerRow = document.createElement("tr");
-      const headerLabels = ["Configuration", "Title", "Description", "Link", "Timestamp", "Actions"];
-      headerLabels.forEach((label, index) => {
-        const th = document.createElement("th");
-        th.scope = "col";
-        th.textContent = label;
-        if (index === headerLabels.length - 1) {
-          th.className = "peek-table-heading--right";
+      footer.appendChild(detailButton);
+      body.appendChild(footer);
+
+      card.appendChild(body);
+      card.addEventListener("click", () => {
+        openDetail(item);
+      });
+      card.addEventListener("keypress", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openDetail(item);
         }
-        headerRow.appendChild(th);
       });
-      thead.appendChild(headerRow);
+      col.appendChild(card);
+      return col;
+    }
+
+    function renderTable(items) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "table-responsive peek-table-wrapper";
+      const table = document.createElement("table");
+      table.className = "table table-hover align-middle mb-0 peek-table";
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr>
+          <th scope="col">Badge</th>
+          <th scope="col">Title</th>
+          <th scope="col">Description</th>
+          <th scope="col">Config</th>
+          <th scope="col">Timestamp</th>
+          <th scope="col" class="text-end">Details</th>
+        </tr>
+      `;
       table.appendChild(thead);
 
       const tbody = document.createElement("tbody");
-      visibleItems.forEach((item) => {
+      items.forEach((item) => {
         const tr = document.createElement("tr");
         tr.className = "peek-table-row";
+        tr.tabIndex = 0;
         if (item?.config) {
           tr.dataset.config = item.config;
         }
@@ -508,174 +538,137 @@
         highlights.forEach((highlight) => {
           tr.classList.add(highlight);
         });
-        tr.addEventListener("click", () => {
-          openDetail(item);
-        });
 
-        const configCell = document.createElement("td");
-        configCell.className = "peek-table-cell peek-table-cell--config";
-        configCell.textContent = resolveConfigName(item);
-        tr.appendChild(configCell);
+        const badgeCell = document.createElement("td");
+        badgeCell.textContent = item?.view?.badge || "—";
 
         const titleCell = document.createElement("td");
-        titleCell.className = "peek-table-cell peek-table-cell--title";
-        const titleLayout = document.createElement("div");
-        titleLayout.className = "peek-table-title";
-        if (item?.view?.badge) {
-          const badge = document.createElement("span");
-          badge.className = "peek-item-badge peek-item-badge--compact";
-          badge.textContent = item.view.badge;
-          titleLayout.appendChild(badge);
-        }
-        const titleText = document.createElement("span");
-        titleText.className = "peek-table-title-text";
-        titleText.textContent = item?.view?.title || "Untitled entry";
-        titleLayout.appendChild(titleText);
-        titleCell.appendChild(titleLayout);
+        titleCell.textContent = item?.view?.title || "Untitled entry";
 
         const descriptionCell = document.createElement("td");
-        descriptionCell.className = "peek-table-cell peek-table-cell--description";
-        const descriptionContent = document.createElement("div");
-        descriptionContent.className = "peek-markdown peek-table-description";
-        const renderedDescription = renderDescription(item?.view?.description || "");
-        if (renderedDescription.trim()) {
-          descriptionContent.innerHTML = renderedDescription;
-        } else {
-          descriptionContent.innerHTML = '<span class="peek-table-placeholder">—</span>';
-        }
-        descriptionCell.appendChild(descriptionContent);
+        descriptionCell.className = "peek-markdown";
+        descriptionCell.innerHTML = renderDescription(item?.view?.description || "");
 
-        const linkCell = document.createElement("td");
-        linkCell.className = "peek-table-cell";
-        const linkHref = safeHref(item?.view?.link);
-        if (linkHref) {
-          const link = document.createElement("a");
-          link.href = linkHref;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.className = "peek-item-link peek-item-link--table";
-          link.textContent = "Open link";
-          link.addEventListener("click", (event) => {
-            event.stopPropagation();
-          });
-          linkCell.appendChild(link);
-        } else {
-          const noLink = document.createElement("span");
-          noLink.className = "peek-table-placeholder";
-          noLink.textContent = "—";
-          linkCell.appendChild(noLink);
-        }
+        const configCell = document.createElement("td");
+        configCell.textContent = resolveConfigName(item) || "—";
 
         const timestampCell = document.createElement("td");
-        timestampCell.className = "peek-table-cell peek-table-cell--timestamp";
-        const timestamp = document.createElement("time");
-        timestamp.dateTime = item.ts || "";
-        timestamp.textContent = formatTimestamp(item.ts);
-        timestampCell.appendChild(timestamp);
+        timestampCell.textContent = formatTimestamp(item.ts);
 
         const actionCell = document.createElement("td");
-        actionCell.className = "peek-table-cell peek-table-cell--actions";
-        const detailButton = document.createElement("button");
-        detailButton.type = "button";
-        detailButton.className = "peek-toggle peek-toggle--tiny";
-        detailButton.textContent = "Details";
-        detailButton.addEventListener("click", (event) => {
+        actionCell.className = "text-end";
+        const actionButton = document.createElement("button");
+        actionButton.type = "button";
+        actionButton.className = "btn btn-sm btn-outline-secondary";
+        actionButton.textContent = "View";
+        actionButton.addEventListener("click", (event) => {
           event.stopPropagation();
           openDetail(item);
         });
-        actionCell.appendChild(detailButton);
+        actionCell.appendChild(actionButton);
 
+        tr.appendChild(badgeCell);
         tr.appendChild(titleCell);
         tr.appendChild(descriptionCell);
-        tr.appendChild(linkCell);
+        tr.appendChild(configCell);
         tr.appendChild(timestampCell);
         tr.appendChild(actionCell);
-
+        tr.addEventListener("click", () => {
+          openDetail(item);
+        });
+        tr.addEventListener("keypress", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openDetail(item);
+          }
+        });
         tbody.appendChild(tr);
       });
+
       table.appendChild(tbody);
-      scroll.appendChild(table);
-      frame.appendChild(scroll);
-      itemsContainer.appendChild(frame);
+      wrapper.appendChild(table);
+      return wrapper;
     }
 
-    function openDetail(item) {
-      if (!detailDialog) {
+    function renderItems() {
+      visibleItems = getFilteredItems();
+      if (!itemsContainer) {
         return;
       }
-      if (detailJson) {
-        detailJson.textContent = JSON.stringify(item, null, 2);
-      }
-      if (typeof detailDialog.showModal === "function") {
-        detailDialog.showModal();
-      }
-    }
+      itemsContainer.innerHTML = "";
+      itemsContainer.dataset.viewMode = state.viewMode;
 
-    if (closeDialog && detailDialog) {
-      closeDialog.addEventListener("click", () => {
-        if (typeof detailDialog.close === "function") {
-          detailDialog.close();
+      if (!state.initialized) {
+        emptyStateEl?.classList.add("hidden");
+        itemsCountBadge?.setAttribute("hidden", "true");
+        return;
+      }
+
+      if (!visibleItems.length) {
+        if (!configs.length) {
+          emptyStateMessageEl && (emptyStateMessageEl.textContent = "Add a configuration to begin ingesting data.");
+        } else if (selectedSlugs.size > 0 && state.items.length) {
+          emptyStateMessageEl && (emptyStateMessageEl.textContent = "No entries match the selected configurations yet.");
+        } else {
+          emptyStateMessageEl && (emptyStateMessageEl.textContent = "New items will appear here automatically.");
         }
-      });
+        emptyStateEl?.classList.remove("hidden");
+        itemsCountBadge?.setAttribute("hidden", "true");
+        return;
+      }
+
+      emptyStateEl?.classList.add("hidden");
+      itemsCountBadge?.removeAttribute("hidden");
+      if (itemsCountBadge) {
+        itemsCountBadge.textContent = `${visibleItems.length} item${visibleItems.length === 1 ? "" : "s"}`;
+      }
+
+      if (state.viewMode === "card") {
+        const row = document.createElement("div");
+        row.className = "row g-3";
+        visibleItems.forEach((item) => {
+          row.appendChild(renderCard(item));
+        });
+        itemsContainer.appendChild(row);
+        return;
+      }
+
+      itemsContainer.appendChild(renderTable(visibleItems));
     }
 
     function updateActiveMeta() {
       if (!activeConfigTitle || !activeConfigSubtitle) {
         return;
       }
-
       if (!configs.length) {
-        activeConfigTitle.textContent = "No configurations available";
-        activeConfigSubtitle.textContent = "Add a configuration to begin ingesting data.";
+        activeConfigTitle.textContent = "Awaiting configurations";
+        activeConfigSubtitle.textContent = "Add a configuration file to begin streaming updates.";
         return;
       }
-
-      if (!state.initialized) {
+      if (selectedSlugs.size === 0 || selectedSlugs.size === configs.length) {
         activeConfigTitle.textContent = "All configurations";
-        activeConfigSubtitle.textContent = "Loading the latest activity…";
+        activeConfigSubtitle.textContent = "Showing the latest entries across every configuration.";
         return;
       }
-
-      const totalItems = state.items.length;
-      const visibleCount = visibleItems.length;
-      const totalConfigs = configs.length;
-
-      if (selectedSlugs.size === 0 || selectedSlugs.size === totalConfigs) {
-        activeConfigTitle.textContent = "All configurations";
-        activeConfigSubtitle.textContent = totalItems
-          ? `${totalItems} entr${totalItems === 1 ? "y" : "ies"} loaded across ${totalConfigs} configuration${totalConfigs === 1 ? "" : "s"}.`
-          : "Listening for new activity across every configuration…";
-        return;
-      }
-
-      const selectedNames = configs
-        .filter((config) => selectedSlugs.has(config.slug))
-        .map((config) => config.display_name);
-
-      activeConfigTitle.textContent = selectedNames.join(", ");
-      activeConfigSubtitle.textContent = visibleCount
-        ? `${visibleCount} entr${visibleCount === 1 ? "y" : "ies"} from ${selectedSlugs.size} selected configuration${selectedSlugs.size === 1 ? "" : "s"}.`
-        : "Listening for new activity from the selected configurations…";
+      const selectedConfigs = configs.filter((config) => selectedSlugs.has(config.slug));
+      const names = selectedConfigs.map((config) => config.display_name);
+      activeConfigTitle.textContent = names.join(", ") || "Filtered view";
+      activeConfigSubtitle.textContent = `Showing ${visibleItems.length} entr${visibleItems.length === 1 ? "y" : "ies"} from ${selectedConfigs.length} configuration${selectedConfigs.length === 1 ? "" : "s"}.`;
     }
 
-    function updateLoading(isLoading) {
-      loadingEl.classList.toggle("hidden", !isLoading);
+    function updateLoadingState(items) {
+      state.items = items;
+      state.items.sort((a, b) => (a.ts < b.ts ? 1 : -1));
+      while (state.items.length > 500) {
+        const removed = state.items.pop();
+        if (removed && removed.id) {
+          itemById.delete(removed.id);
+        }
+      }
+      state.initialized = true;
     }
 
-    const observer = new IntersectionObserver((entries) => {
-      if (!state.nextCursor || state.fetching) {
-        return;
-      }
-      if (entries.some((entry) => entry.isIntersecting)) {
-        fetchItems({ append: true });
-      }
-    });
-
-    if (loadMoreSentinel) {
-      observer.observe(loadMoreSentinel);
-    }
-
-    async function fetchItems({ append = false, cursorOverride = null } = {}) {
+    function fetchItems({ append = false, cursorOverride = null } = {}) {
       if (state.fetching) {
         return;
       }
@@ -691,38 +684,35 @@
         params.set("cursor", cursorToUse);
       }
 
-      try {
-        const response = await fetch(`/api/items?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error(`Failed to load items: ${response.status}`);
-        }
-        const payload = await response.json();
-        const items = Array.isArray(payload.items) ? payload.items : [];
-        items.forEach((item) => {
-          if (!item || !item.id) {
-            return;
+      fetch(`/api/items?${params.toString()}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to load items: ${response.status}`);
           }
-          itemById.set(item.id, item);
+          return response.json();
+        })
+        .then((payload) => {
+          const items = Array.isArray(payload.items) ? payload.items : [];
+          items.forEach((item) => {
+            if (!item || !item.id) {
+              return;
+            }
+            itemById.set(item.id, item);
+          });
+          const nextItems = Array.from(itemById.values());
+          updateLoadingState(nextItems);
+          state.nextCursor = payload.next_cursor || null;
+          renderConfigList();
+          renderItems();
+        })
+        .catch((err) => {
+          console.error(err);
+        })
+        .finally(() => {
+          state.fetching = false;
+          updateLoading(false);
+          updateActiveMeta();
         });
-        state.items = Array.from(itemById.values());
-        state.items.sort((a, b) => (a.ts < b.ts ? 1 : -1));
-        while (state.items.length > 500) {
-          const removed = state.items.pop();
-          if (removed && removed.id) {
-            itemById.delete(removed.id);
-          }
-        }
-        state.nextCursor = payload.next_cursor || null;
-        state.initialized = true;
-        renderConfigList();
-        renderItems();
-      } catch (err) {
-        console.error(err);
-      } finally {
-        state.fetching = false;
-        updateLoading(false);
-        updateActiveMeta();
-      }
     }
 
     function upsertItem(item) {
@@ -730,15 +720,8 @@
         return;
       }
       itemById.set(item.id, item);
-      state.items = Array.from(itemById.values());
-      state.items.sort((a, b) => (a.ts < b.ts ? 1 : -1));
-      while (state.items.length > 500) {
-        const removed = state.items.pop();
-        if (removed && removed.id) {
-          itemById.delete(removed.id);
-        }
-      }
-      state.initialized = true;
+      const nextItems = Array.from(itemById.values());
+      updateLoadingState(nextItems);
     }
 
     function connectStream() {
@@ -778,9 +761,46 @@
       });
     }
 
+    if (viewToggle) {
+      viewToggle.addEventListener("click", () => {
+        toggleViewMode();
+      });
+    }
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        toggleTheme();
+      });
+      restoreTheme();
+    }
+    if (closeDialog) {
+      closeDialog.addEventListener("click", () => {
+        closeDetail();
+      });
+    }
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeDetail();
+      }
+    });
+
+    const observer = "IntersectionObserver" in window
+      ? new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            fetchItems({ append: true });
+          }
+        });
+      }, { rootMargin: "200px" })
+      : null;
+
+    if (observer && loadMoreSentinel) {
+      observer.observe(loadMoreSentinel);
+    }
+
     renderConfigList();
     renderItems();
     updateActiveMeta();
+    syncViewToggleState();
     fetchItems();
     connectStream();
 
