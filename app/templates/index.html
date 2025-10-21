@@ -434,6 +434,15 @@
       configLabel.textContent = resolveConfigName(item);
       metaRow.appendChild(configLabel);
 
+      const coalesceValue = (item?.coalesce ?? "").toString().trim();
+      if (coalesceValue) {
+        const coalesceLabel = document.createElement("span");
+        coalesceLabel.className = "badge peek-coalesce-badge";
+        coalesceLabel.textContent = coalesceValue;
+        coalesceLabel.title = `Coalesce: ${coalesceValue}`;
+        metaRow.appendChild(coalesceLabel);
+      }
+
 	  
 	  
 	  const timestamp = document.createElement("time");
@@ -566,7 +575,23 @@
         descriptionCell.innerHTML = renderDescription(item?.view?.description || "");
 
         const configCell = document.createElement("td");
-        configCell.textContent = resolveConfigName(item) || "—";
+        const configWrapper = document.createElement("span");
+        configWrapper.className = "d-inline-flex align-items-center gap-2 flex-wrap";
+
+        const configName = document.createElement("span");
+        configName.textContent = resolveConfigName(item) || "—";
+        configWrapper.appendChild(configName);
+
+        const coalesceValue = (item?.coalesce ?? "").toString().trim();
+        if (coalesceValue) {
+          const coalesceBadge = document.createElement("span");
+          coalesceBadge.className = "badge peek-coalesce-badge";
+          coalesceBadge.textContent = coalesceValue;
+          coalesceBadge.title = `Coalesce: ${coalesceValue}`;
+          configWrapper.appendChild(coalesceBadge);
+        }
+
+        configCell.appendChild(configWrapper);
 
         const timestampCell = document.createElement("td");
         timestampCell.textContent = formatTimestamp(item.ts);
