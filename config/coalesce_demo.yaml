@@ -4,8 +4,9 @@ fields:
   title: "{{ data.summary | default('Updated item with coalesce') }}"
   link: "{{ data.link | default('') }}"
   description: |
-    {% if data.coalesce %}
-    Identifier: {{ data.coalesce }}
+    {% if data.event_id %}
+    Event ID: {{ data.event_id }}
     {% else %}
-    No coalesce identifier provided.
+    Event ID not provided.
     {% endif %}
+  coalesce: "{{ data.event_id | default('') }}"

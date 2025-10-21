@@ -73,13 +73,6 @@ def create_app() -> FastAPI:
         if not isinstance(payload, dict):
             raise HTTPException(status_code=400, detail="Expected a JSON object")
 
-        coalesce_raw = payload.get("coalesce")
-        coalesce_value: Optional[str] = None
-        if coalesce_raw is not None:
-            candidate = str(coalesce_raw).strip()
-            if candidate:
-                coalesce_value = candidate
-
         item_id = str(uuid4())
         timestamp = now_iso()
 
@@ -87,19 +80,28 @@ def create_app() -> FastAPI:
         highlights = compute_highlights(bundle, payload)
         view["highlights"] = highlights
 
+        coalesce_value: Optional[str] = None
+        coalesce_raw = view.get("coalesce")
+        if coalesce_raw is not None:
+            candidate = str(coalesce_raw).strip()
+            if candidate:
+                coalesce_value = candidate
+
+        view_payload = {
+            "badge": view.get("badge", ""),
+            "title": view.get("title", ""),
+            "link": view.get("link", ""),
+            "description": view.get("description", ""),
+            "highlights": highlights,
+        }
+
         item = {
             "id": item_id,
             "ts": timestamp,
             "config": slug,
             "config_display_name": bundle.display_name,
             "data": payload,
-            "view": {
-                "badge": view.get("badge", ""),
-                "title": view.get("title", ""),
-                "link": view.get("link", ""),
-                "description": view.get("description", ""),
-                "highlights": highlights,
-            },
+            "view": view_payload,
             "coalesce": coalesce_value,
         }
 

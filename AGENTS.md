@@ -10,7 +10,7 @@
 - Configurations in `config/*.yaml` define per-stream display templates (`badge`, `title`, `link`, `description`) and optional highlight rules that map data into CSS classes.
 - The UI (served from `app/templates/index.html`) consumes the aggregated `/api/items` endpoint (with optional client-side filters) and `/api/stream` for SSE updates; ingestion routes remain `/api/{slug}`.
 - Items can be dismissed via `DELETE /api/{slug}/{item_id}`; the store broadcasts a `{"event": "deleted"}` payload on SSE streams so the UI can drop removed entries.
-- Items accept an optional `coalesce` identifier; posting to the same slug with a matching `coalesce` updates the existing record (timestamp refreshed, data replaced) while keeping the original item `id`.
+- Configs may supply `fields.coalesce` to derive an optional identifier; posts to the same slug whose template renders the same value update the existing record (timestamp refreshed, data replaced) while keeping the original item `id`.
 - Ingested items persist to SQLite (`DB_PATH`, default `./data/peek.db`), so restarts retain history.
 - The Configurations sidebar starts with every stream visible; clicking entries toggles per-config filters that limit the aggregated view.
 - `README.md` contains the canonical quick-start for running via `docker-compose`.
@@ -35,7 +35,7 @@
 
 ## Configuration Guidelines
 - Config filenames (sans extension) become collection slugs; keep them URL-safe.
-- Every config must provide a `display_name` string and a `fields` mapping with exactly `badge`, `title`, `link`, `description`.
+- Every config must provide a `display_name` string and a `fields` mapping with `badge`, `title`, `link`, `description`; `coalesce` is optional and, when present, should render a stable identifier string.
 - Jinja templates receive `data` plus all top-level keys from the posted JSON; guard missing keys with `default`.
 - Highlight rules (`highlight_rules`) are optional; each rule needs a Jinja expression in `when` and a CSS class in `class` or `class_`. Classes should match styles defined in the templates (e.g., `highlight-error`).
 - Restarting the process is currently required to pick up new configs; hot reload is not implemented.

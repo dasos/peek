@@ -10,7 +10,8 @@
 - Required fields:
   - `display_name`: string shown in the UI.
   - `fields.badge`, `fields.title`, `fields.link`, `fields.description`: Jinja2 templates rendered against the posted JSON object (`data` plus its top-level keys).
-  - Optional `highlight_rules`: list with items containing `name` (optional), `when` (Jinja2 expression), and `class`/`class_` (CSS class to apply when the expression evaluates truthy).
+- Optional `fields.coalesce`: template that renders a stable identifier used to update items in place; when absent or blank, behaviour falls back to always creating new items.
+- Optional `highlight_rules`: list with items containing `name` (optional), `when` (Jinja2 expression), and `class`/`class_` (CSS class to apply when the expression evaluates truthy).
 - To load configs from additional locations, set the `CONFIG_PATHS` environment variable to an OS-path-separated list (e.g. `/etc/peek:/opt/extra-configs`). The legacy `CONFIG_DIR` variable is still supported for single-directory setups.
 
 ## Persistence
@@ -31,18 +32,18 @@ curl -X POST http://localhost:8080/api/logs \
 ```
 
 ## Coalesce identifier
-- Include an optional `coalesce` key in the payload to reuse an existing entry when posting to the same slug. The backend keeps the original item `id`, refreshes the timestamp, and replaces the stored payload and rendered view.
-- Omitting `coalesce` (or leaving it blank/`null`) preserves the existing behaviour and always creates a new item.
-- Try the new `coalesce-demo` config with:
+- Provide `fields.coalesce` in a config to derive a stream-specific identifier from the posted payload. When the template renders a non-empty string, subsequent ingests with the same value update the existing record (refreshing timestamp, data, and rendered view while keeping the original `id`).
+- If the template renders empty—or you omit `fields.coalesce`—the service always creates a new item, preserving legacy behaviour.
+- The sample `coalesce-demo` config renders `fields.coalesce: "{{ data.event_id }}"`, so repeating the same `event_id` updates in place:
 
 ```bash
 curl -X POST http://localhost:8080/api/coalesce-demo \
   -H "Content-Type: application/json" \
-  -d '{"source":"demo","summary":"First event","coalesce":"demo-1"}'
+  -d '{"source":"demo","summary":"First event","event_id":"demo-1"}'
 
 curl -X POST http://localhost:8080/api/coalesce-demo \
   -H "Content-Type: application/json" \
-  -d '{"source":"demo","summary":"Updated event","coalesce":"demo-1"}'
+  -d '{"source":"demo","summary":"Updated event","event_id":"demo-1"}'
 ```
 
 ## Local development
@@ -66,7 +67,3 @@ curl -X POST http://localhost:8080/api/coalesce-demo \
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
    ```
 6. Visit `http://localhost:8080/` to load the dashboard. Use the sample `curl` commands above to ingest test data—new entries appear live via the SSE stream.
-7. You can remove test entries by clicking the dismiss (“×”) control on a card or table row, or via:
-   ```bash
-   curl -X DELETE http://localhost:8080/api/<slug>/<item_id>
-   ```

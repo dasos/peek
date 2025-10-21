@@ -76,10 +76,18 @@ def load_configs(config_dirs: Iterable[Path]) -> Dict[str, ConfigBundle]:
             if not isinstance(fields, dict):
                 raise RuntimeError(f"Config {path} missing 'fields' mapping")
 
-            expected_field_keys = {"badge", "title", "link", "description"}
-            if set(fields.keys()) != expected_field_keys:
+            required_field_keys = {"badge", "title", "link", "description"}
+            optional_field_keys = {"coalesce"}
+            field_keys = set(fields.keys())
+            missing = required_field_keys - field_keys
+            unexpected = field_keys - (required_field_keys | optional_field_keys)
+            if missing:
+                missing_list = ", ".join(sorted(missing))
+                raise RuntimeError(f"Config {path} missing required field(s): {missing_list}")
+            if unexpected:
+                unexpected_list = ", ".join(sorted(unexpected))
                 raise RuntimeError(
-                    f"Config {path} fields must define exactly {sorted(expected_field_keys)}"
+                    f"Config {path} fields contain unsupported key(s): {unexpected_list}"
                 )
 
             templates: Dict[str, Template] = {}
