@@ -3,5 +3,6 @@ fields:
   badge: ""
   title: "{{ title }}"
   link: ""
+  coalesce: "{{ title.split(' ')[0] }}"
   description: |
     {{ message }}

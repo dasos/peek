@@ -3,5 +3,6 @@ fields:
   badge: "Update"
   title: "{{ image }} has been updated"
   link: "{{ hub_link }}"
+  coalesce: "{{ hostname }}"
   description: |
     Docker tag [**{{ image }}**]({{ hub_link }}) has been updated.
