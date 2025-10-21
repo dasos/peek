@@ -1,7 +1,8 @@
 display_name: Simple
 fields:
-  badge: ""
+  badge: "{{ badge | default('') }}"
   title: "{{ title }}"
   link: "{{ link }}"
   description: |
     {{ description }}
+  coalesce: "{{ slug | default('') }}"

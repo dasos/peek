@@ -34,16 +34,16 @@ curl -X POST http://localhost:8080/api/logs \
 ## Coalesce identifier
 - Provide `fields.coalesce` in a config to derive a stream-specific identifier from the posted payload. When the template renders a non-empty string, subsequent ingests with the same value update the existing record (refreshing timestamp, data, and rendered view while keeping the original `id`).
 - If the template renders empty—or you omit `fields.coalesce`—the service always creates a new item, preserving legacy behaviour.
-- The sample `coalesce-demo` config renders `fields.coalesce: "{{ data.event_id }}"`, so repeating the same `event_id` updates in place:
+- The bundled `simple.yaml` config now sets `fields.coalesce: "{{ slug | default('') }}"`, so posting the same `slug` replaces the existing entry:
 
 ```bash
-curl -X POST http://localhost:8080/api/coalesce-demo \
+curl -X POST http://localhost:8080/api/simple \
   -H "Content-Type: application/json" \
-  -d '{"source":"demo","summary":"First event","event_id":"demo-1"}'
+  -d '{"title":"Deployment started","description":"Rolling out v2","slug":"deploy"}'
 
-curl -X POST http://localhost:8080/api/coalesce-demo \
+curl -X POST http://localhost:8080/api/simple \
   -H "Content-Type: application/json" \
-  -d '{"source":"demo","summary":"Updated event","event_id":"demo-1"}'
+  -d '{"title":"Deployment finished","description":"v2 is live","slug":"deploy"}'
 ```
 
 ## Local development
