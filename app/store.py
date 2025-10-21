@@ -1,7 +1,7 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import aiosqlite
 
@@ -29,8 +29,21 @@ class SQLiteStore:
                     ts TEXT NOT NULL,
                     config_display_name TEXT NOT NULL,
                     data_json TEXT NOT NULL,
-                    view_json TEXT NOT NULL
+                    view_json TEXT NOT NULL,
+                    coalesce TEXT
                 )
+                """
+            )
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.execute("PRAGMA table_info(items)")
+            columns = [row["name"] for row in await cursor.fetchall()]
+            await cursor.close()
+            if "coalesce" not in columns:
+                await conn.execute("ALTER TABLE items ADD COLUMN coalesce TEXT")
+            await conn.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_items_slug_coalesce
+                ON items (slug, coalesce)
                 """
             )
             await conn.execute(
@@ -41,27 +54,102 @@ class SQLiteStore:
             )
             await conn.commit()
 
-    async def add_item(self, slug: str, item: Dict[str, Any]) -> None:
+    async def add_item(self, slug: str, item: Dict[str, Any]) -> Tuple[Dict[str, Any], bool]:
         self.ensure_slug(slug)
         data_json = json.dumps(item.get("data", {}))
         view_json = json.dumps(item.get("view", {}))
+        coalesce_value = item.get("coalesce")
+        if coalesce_value is not None:
+            coalesce_value = str(coalesce_value).strip()
+            if not coalesce_value:
+                coalesce_value = None
+        item["coalesce"] = coalesce_value
+        updated_existing = False
         async with aiosqlite.connect(self._db_path) as conn:
-            await conn.execute(
-                """
-                INSERT INTO items (id, slug, ts, config_display_name, data_json, view_json)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    item["id"],
-                    slug,
-                    item["ts"],
-                    item.get("config_display_name", slug),
-                    data_json,
-                    view_json,
-                ),
-            )
+            conn.row_factory = aiosqlite.Row
+            await conn.execute("BEGIN")
+            if coalesce_value is not None:
+                cursor = await conn.execute(
+                    """
+                    SELECT id
+                    FROM items
+                    WHERE slug = ? AND coalesce = ?
+                    """,
+                    (slug, coalesce_value),
+                )
+                existing = await cursor.fetchone()
+                await cursor.close()
+                if existing is not None:
+                    updated_existing = True
+                    item["id"] = existing["id"]
+                    await conn.execute(
+                        """
+                        UPDATE items
+                        SET ts = ?, config_display_name = ?, data_json = ?, view_json = ?
+                        WHERE slug = ? AND coalesce = ?
+                        """,
+                        (
+                            item["ts"],
+                            item.get("config_display_name", slug),
+                            data_json,
+                            view_json,
+                            slug,
+                            coalesce_value,
+                        ),
+                    )
+            if not updated_existing:
+                try:
+                    await conn.execute(
+                        """
+                        INSERT INTO items (id, slug, ts, config_display_name, data_json, view_json, coalesce)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            item["id"],
+                            slug,
+                            item["ts"],
+                            item.get("config_display_name", slug),
+                            data_json,
+                            view_json,
+                            coalesce_value,
+                        ),
+                    )
+                except aiosqlite.IntegrityError:
+                    if coalesce_value is None:
+                        raise
+                    cursor = await conn.execute(
+                        """
+                        SELECT id
+                        FROM items
+                        WHERE slug = ? AND coalesce = ?
+                        """,
+                        (slug, coalesce_value),
+                    )
+                    existing = await cursor.fetchone()
+                    await cursor.close()
+                    if existing is None:
+                        raise
+                    updated_existing = True
+                    item["id"] = existing["id"]
+                    await conn.execute(
+                        """
+                        UPDATE items
+                        SET ts = ?, config_display_name = ?, data_json = ?, view_json = ?
+                        WHERE slug = ? AND coalesce = ?
+                        """,
+                        (
+                            item["ts"],
+                            item.get("config_display_name", slug),
+                            data_json,
+                            view_json,
+                            slug,
+                            coalesce_value,
+                        ),
+                    )
             await conn.commit()
-        await self._publish(slug, item)
+        stored_item = dict(item)
+        await self._publish(slug, stored_item)
+        return stored_item, updated_existing
 
     async def list_items(self, slug: str) -> List[Dict[str, Any]]:
         self.ensure_slug(slug)
@@ -69,7 +157,7 @@ class SQLiteStore:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.execute(
                 """
-                SELECT id, slug, ts, config_display_name, data_json, view_json
+                SELECT id, slug, ts, config_display_name, data_json, view_json, coalesce
                 FROM items
                 WHERE slug = ?
                 ORDER BY ts DESC
@@ -85,7 +173,7 @@ class SQLiteStore:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.execute(
                 """
-                SELECT id, slug, ts, config_display_name, data_json, view_json
+                SELECT id, slug, ts, config_display_name, data_json, view_json, coalesce
                 FROM items
                 ORDER BY ts DESC
                 """
@@ -100,7 +188,7 @@ class SQLiteStore:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.execute(
                 """
-                SELECT id, slug, ts, config_display_name, data_json, view_json
+                SELECT id, slug, ts, config_display_name, data_json, view_json, coalesce
                 FROM items
                 WHERE slug = ? AND id = ?
                 """,
@@ -109,6 +197,43 @@ class SQLiteStore:
             row = await cursor.fetchone()
             await cursor.close()
         return self._row_to_item(row) if row else None
+
+    async def delete_item(self, slug: str, item_id: str) -> bool:
+        self.ensure_slug(slug)
+        async with aiosqlite.connect(self._db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.execute(
+                """
+                SELECT id, slug, ts, coalesce
+                FROM items
+                WHERE slug = ? AND id = ?
+                """,
+                (slug, item_id),
+            )
+            row = await cursor.fetchone()
+            await cursor.close()
+            if row is None:
+                return False
+            await conn.execute(
+                """
+                DELETE FROM items
+                WHERE slug = ? AND id = ?
+                """,
+                (slug, item_id),
+            )
+            await conn.commit()
+        await self._publish(
+            slug,
+            {
+                "id": item_id,
+                "config": slug,
+                "ts": row["ts"],
+                "coalesce": row["coalesce"],
+                "deleted": True,
+                "event": "deleted",
+            },
+        )
+        return True
 
     async def subscribe(self, slug: str) -> asyncio.Queue:
         self.ensure_slug(slug)
@@ -137,4 +262,5 @@ class SQLiteStore:
             "config_display_name": row["config_display_name"],
             "data": data,
             "view": view,
+            "coalesce": row["coalesce"],
         }

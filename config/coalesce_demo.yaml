@@ -1,0 +1,11 @@
+display_name: Coalesce Demo
+fields:
+  badge: "{{ data.source | default('demo') }}"
+  title: "{{ data.summary | default('Updated item with coalesce') }}"
+  link: "{{ data.link | default('') }}"
+  description: |
+    {% if data.coalesce %}
+    Identifier: {{ data.coalesce }}
+    {% else %}
+    No coalesce identifier provided.
+    {% endif %}

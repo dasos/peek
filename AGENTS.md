@@ -9,6 +9,8 @@
 - Peek is a FastAPI service that ingests JSON payloads, renders configurable views with Jinja2 templates, and serves a lightweight dashboard.
 - Configurations in `config/*.yaml` define per-stream display templates (`badge`, `title`, `link`, `description`) and optional highlight rules that map data into CSS classes.
 - The UI (served from `app/templates/index.html`) consumes the aggregated `/api/items` endpoint (with optional client-side filters) and `/api/stream` for SSE updates; ingestion routes remain `/api/{slug}`.
+- Items can be dismissed via `DELETE /api/{slug}/{item_id}`; the store broadcasts a `{"event": "deleted"}` payload on SSE streams so the UI can drop removed entries.
+- Items accept an optional `coalesce` identifier; posting to the same slug with a matching `coalesce` updates the existing record (timestamp refreshed, data replaced) while keeping the original item `id`.
 - Ingested items persist to SQLite (`DB_PATH`, default `./data/peek.db`), so restarts retain history.
 - The Configurations sidebar starts with every stream visible; clicking entries toggles per-config filters that limit the aggregated view.
 - `README.md` contains the canonical quick-start for running via `docker-compose`.

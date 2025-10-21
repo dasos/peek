@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from contextlib import suppress
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -73,6 +73,13 @@ def create_app() -> FastAPI:
         if not isinstance(payload, dict):
             raise HTTPException(status_code=400, detail="Expected a JSON object")
 
+        coalesce_raw = payload.get("coalesce")
+        coalesce_value: Optional[str] = None
+        if coalesce_raw is not None:
+            candidate = str(coalesce_raw).strip()
+            if candidate:
+                coalesce_value = candidate
+
         item_id = str(uuid4())
         timestamp = now_iso()
 
@@ -93,11 +100,16 @@ def create_app() -> FastAPI:
                 "description": view.get("description", ""),
                 "highlights": highlights,
             },
+            "coalesce": coalesce_value,
         }
 
-        await store.add_item(slug, item)
-        LOGGER.info("Ingested item %s into %s", item_id, slug)
-        return JSONResponse(status_code=201, content=item)
+        saved_item, updated_existing = await store.add_item(slug, item)
+        status_code = 200 if updated_existing else 201
+        log_action = "Updated" if updated_existing else "Ingested"
+        coalesce_current = saved_item.get("coalesce")
+        coalesce_suffix = f" (coalesce={coalesce_current})" if coalesce_current else ""
+        LOGGER.info("%s item %s into %s%s", log_action, saved_item["id"], slug, coalesce_suffix)
+        return JSONResponse(status_code=status_code, content=saved_item)
 
     @app.get("/api/items")
     async def list_all_items(request: Request) -> JSONResponse:
@@ -127,6 +139,10 @@ def create_app() -> FastAPI:
                 return False
             data = item.get("data", {})
             for key, value in filters.items():
+                if key == "coalesce":
+                    if str(item.get("coalesce") or "") != value:
+                        return False
+                    continue
                 if str(data.get(key)) != value:
                     return False
             if query:
@@ -137,6 +153,7 @@ def create_app() -> FastAPI:
                     item["view"].get("link", ""),
                     item["view"].get("description", ""),
                 ]
+                haystack_parts.append(item.get("coalesce") or "")
                 for val in data.values():
                     haystack_parts.append(str(val))
                 haystack = " ".join(part for part in haystack_parts if part)
@@ -225,6 +242,10 @@ def create_app() -> FastAPI:
                 return False
             data = item["data"]
             for key, value in filters.items():
+                if key == "coalesce":
+                    if str(item.get("coalesce") or "") != value:
+                        return False
+                    continue
                 if str(data.get(key)) != value:
                     return False
             if query:
@@ -235,6 +256,7 @@ def create_app() -> FastAPI:
                     item["view"].get("link", ""),
                     item["view"].get("description", ""),
                 ]
+                haystack_parts.append(item.get("coalesce") or "")
                 for val in data.values():
                     haystack_parts.append(str(val))
                 haystack = " ".join(part for part in haystack_parts if part)
@@ -272,6 +294,16 @@ def create_app() -> FastAPI:
         if item is None:
             raise HTTPException(status_code=404, detail="Item not found")
         return JSONResponse(content=item)
+
+    @app.delete("/api/{slug}/{item_id}", status_code=204)
+    async def delete_item(slug: str, item_id: str) -> Response:
+        if slug not in configs:
+            raise HTTPException(status_code=404, detail="Unknown config")
+        removed = await store.delete_item(slug, item_id)
+        if not removed:
+            raise HTTPException(status_code=404, detail="Item not found")
+        LOGGER.info("Deleted item %s from %s", item_id, slug)
+        return Response(status_code=204)
 
     @app.get("/api/{slug}/stream")
     async def stream(slug: str):
