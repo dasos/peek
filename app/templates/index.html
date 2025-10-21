@@ -160,6 +160,7 @@
     let eventSource = null;
     let reconnectTimeout = null;
     let visibleItems = [];
+    const pendingDismissals = new Set();
 
     const listGroupBaseClass = "list-group-item list-group-item-action d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 rounded-3 peek-config-button";
     const listGroupActiveClass = "active";
@@ -403,6 +404,18 @@
         card.dataset.config = item.config;
       }
 
+      const dismissButton = document.createElement("button");
+      dismissButton.type = "button";
+      dismissButton.className = "peek-dismiss-button";
+      dismissButton.setAttribute("aria-label", "Dismiss item");
+      dismissButton.title = "Dismiss item";
+      dismissButton.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i>';
+      dismissButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        dismissItem(item, { button: dismissButton });
+      });
+      card.appendChild(dismissButton);
+
       const highlights = Array.isArray(item?.view?.highlights) ? item.view.highlights : [];
       highlights.forEach((highlight) => {
         card.classList.add(highlight);
@@ -499,6 +512,9 @@
         openDetail(item);
       });
       card.addEventListener("keypress", (event) => {
+        if (event.target !== card) {
+          return;
+        }
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           openDetail(item);
@@ -521,7 +537,7 @@
           <th scope="col">Description</th>
           <th scope="col">Config</th>
           <th scope="col">Timestamp</th>
-          <th scope="col" class="text-end">Details</th>
+          <th scope="col" class="text-end">Actions</th>
         </tr>
       `;
       table.appendChild(thead);
@@ -557,6 +573,9 @@
 
         const actionCell = document.createElement("td");
         actionCell.className = "text-end";
+        const actionWrapper = document.createElement("div");
+        actionWrapper.className = "d-inline-flex gap-2";
+
         const actionButton = document.createElement("button");
         actionButton.type = "button";
         actionButton.className = "btn btn-sm btn-outline-secondary";
@@ -565,7 +584,20 @@
           event.stopPropagation();
           openDetail(item);
         });
-        actionCell.appendChild(actionButton);
+        actionWrapper.appendChild(actionButton);
+
+        const dismissButton = document.createElement("button");
+        dismissButton.type = "button";
+        dismissButton.className = "btn btn-sm btn-outline-danger";
+        dismissButton.title = "Dismiss item";
+        dismissButton.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Dismiss</span>';
+        dismissButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          dismissItem(item, { button: dismissButton });
+        });
+        actionWrapper.appendChild(dismissButton);
+
+        actionCell.appendChild(actionWrapper);
 
         tr.appendChild(badgeCell);
         tr.appendChild(titleCell);
@@ -577,6 +609,9 @@
           openDetail(item);
         });
         tr.addEventListener("keypress", (event) => {
+          if (event.target !== tr) {
+            return;
+          }
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             openDetail(item);
@@ -668,6 +703,47 @@
       state.initialized = true;
     }
 
+    function dismissItem(item, { button = null } = {}) {
+      if (!item || !item.id || !item.config) {
+        return;
+      }
+      const key = `${item.config}:${item.id}`;
+      if (pendingDismissals.has(key)) {
+        return;
+      }
+      pendingDismissals.add(key);
+      if (button) {
+        button.disabled = true;
+        button.setAttribute("aria-busy", "true");
+      }
+      fetch(`/api/${encodeURIComponent(item.config)}/${encodeURIComponent(item.id)}`, { method: "DELETE" })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to dismiss item: ${response.status}`);
+          }
+          const changed = applyItemEvent({
+            id: item.id,
+            config: item.config,
+            event: "deleted",
+          });
+          if (changed) {
+            renderConfigList();
+            renderItems();
+            updateActiveMeta();
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        })
+        .finally(() => {
+          pendingDismissals.delete(key);
+          if (button) {
+            button.disabled = false;
+            button.removeAttribute("aria-busy");
+          }
+        });
+    }
+
     function fetchItems({ append = false, cursorOverride = null } = {}) {
       if (state.fetching) {
         return;
@@ -715,13 +791,23 @@
         });
     }
 
-    function upsertItem(item) {
+    function applyItemEvent(item) {
       if (!item || !item.id) {
-        return;
+        return false;
+      }
+      if (item.event === "deleted" || item.deleted === true) {
+        const removed = itemById.delete(item.id);
+        if (!removed) {
+          return false;
+        }
+        const nextItems = Array.from(itemById.values());
+        updateLoadingState(nextItems);
+        return true;
       }
       itemById.set(item.id, item);
       const nextItems = Array.from(itemById.values());
       updateLoadingState(nextItems);
+      return true;
     }
 
     function connectStream() {
@@ -742,10 +828,12 @@
       eventSource.addEventListener("message", (event) => {
         try {
           const item = JSON.parse(event.data);
-          upsertItem(item);
-          renderConfigList();
-          renderItems();
-          updateActiveMeta();
+          const changed = applyItemEvent(item);
+          if (changed) {
+            renderConfigList();
+            renderItems();
+            updateActiveMeta();
+          }
         } catch (err) {
           console.error("Unable to parse stream payload", err);
         }

@@ -69,7 +69,8 @@ body {
 }
 
 .peek-panel .card-body {
-  padding: clamp(1.5rem, 2vw, 2.5rem);
+  /*padding: clamp(1.5rem, 2vw, 2.5rem);*/
+  padding: clamp(2rem, 2vw, 2.5rem);
 }
 
 #itemsCountBadge[hidden] {
@@ -92,6 +93,8 @@ body {
   box-shadow: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
+  position: relative;
+  /*padding-top: 0.5rem;*/
 }
 
 .peek-item-card:hover {
@@ -124,6 +127,43 @@ body {
 
 .peek-item-card .peek-item-description a {
   word-break: break-word;
+}
+
+/*.peek-item-card .card-body {
+  padding-right: 3rem;
+  padding-top: 1.25rem;
+}*/
+
+.peek-dismiss-button {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--bs-secondary-color);
+  transition: color 0.2s ease, background-color 0.2s ease, outline-color 0.2s ease;
+}
+
+.peek-dismiss-button:hover {
+  color: var(--bs-danger);
+  background-color: var(--bs-tertiary-bg);
+}
+
+.peek-dismiss-button:focus-visible {
+  outline: 2px solid var(--bs-danger);
+  outline-offset: 2px;
+  color: var(--bs-danger);
+  background-color: var(--bs-tertiary-bg);
+}
+
+.peek-dismiss-button i {
+  pointer-events: none;
 }
 
 .peek-markdown p {
