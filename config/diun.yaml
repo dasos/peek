@@ -3,6 +3,6 @@ fields:
   badge: "Update"
   title: "{{ image }} has been updated"
   link: "{{ hub_link }}"
-  coalesce: "{{ metadata.ctn_name }}"
+  coalesce: "{{ image.split('/')[2].split(':')[0] }}"
   description: |
     {{ metadata.ctn_name }} has been updated. New image: [**{{ image }}**]({{ hub_link }})
